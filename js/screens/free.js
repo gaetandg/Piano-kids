@@ -1,0 +1,148 @@
+// Piano libre : jouer sur l'écran avec des sons rigolos, ou faire écouter son vrai piano.
+import { h, keepAwake, toast, floatStar } from '../ui.js';
+import * as state from '../state.js';
+import { go } from '../router.js';
+import { Keyboard } from '../keyboard.js';
+import { playNote, INSTRUMENTS, unlockAudio } from '../audio.js';
+import { mic, micSupported } from '../pitch.js';
+import { noteName, noteColor, fitRange, pianoPreset, isBlack } from '../music.js';
+import { topBar, bottomNav } from './hub.js';
+
+export function freeScreen(app) {
+  const p = state.currentProfile();
+  if (!p) return go('profiles', {}, { replace: true });
+  const piano = pianoPreset(state.settings().piano);
+  let instrument = 'piano';
+  let names = true;
+  let center = 66; // milieu de la plage affichée
+  let listening = false;
+  let unsub = null;
+  let alive = true;
+
+  const bigNote = h('div', { class: 'free-note' }, '🎹');
+  const sky = h('div', { class: 'free-sky' }, bigNote);
+  const kbWrap = h('div', { class: 'kb-wrap free' });
+  let kb = null;
+
+  function onNote(m) {
+    playNote(m, { instrument, dur: instrument === 'space' ? 1.2 : 0.8 });
+    showNote(m);
+  }
+
+  function showNote(m) {
+    bigNote.textContent = noteName(m);
+    bigNote.style.color = isBlack(m) ? '#fff' : noteColor(m);
+    bigNote.classList.remove('pop');
+    void bigNote.offsetWidth;
+    bigNote.classList.add('pop');
+    const r = kb && kb.rectOf(m);
+    if (r)
+      floatStar(r.left + r.width / 2 - 10, r.top - 10, isBlack(m) ? '#ffd60a' : noteColor(m), ['★', '✦', '●', '♪', '♫'][m % 5]);
+  }
+
+  function build() {
+    const width = kbWrap.clientWidth || window.innerWidth;
+    const target = Math.max(8, Math.min(22, Math.floor(width / 46)));
+    let from;
+    let to;
+    if (listening) [from, to] = [piano.from, piano.to];
+    else [from, to] = fitRange(center - 2, center + 2, target, 36, 96);
+    kb = new Keyboard({ from, to, interactive: !listening, names: names ? 'all' : 'none', colors: true, onNote });
+    kbWrap.innerHTML = '';
+    kbWrap.append(kb.el);
+    kbWrap.classList.toggle('display-only', listening);
+  }
+
+  const instRow = h(
+    'div',
+    { class: 'seg' },
+    Object.entries(INSTRUMENTS).map(([id, ins]) => {
+      const b = h(
+        'button',
+        {
+          class: id === instrument ? 'on' : '',
+          onclick: () => {
+            instrument = id;
+            instRow.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+            playNote(72, { instrument });
+          },
+        },
+        ins.emoji,
+        h('span', { class: 'seg-label' }, ' ' + ins.label),
+      );
+      return b;
+    }),
+  );
+  const shiftL = h('button', { class: 'icon-btn', onclick: () => shift(-12), 'aria-label': 'Plus grave' }, '◀');
+  const shiftR = h('button', { class: 'icon-btn', onclick: () => shift(12), 'aria-label': 'Plus aigu' }, '▶');
+  const namesBtn = h(
+    'button',
+    {
+      class: 'btn ghost small on',
+      onclick: () => {
+        names = !names;
+        namesBtn.classList.toggle('on', names);
+        build();
+      },
+    },
+    'Do Ré Mi',
+  );
+  const listenBtn = h('button', { class: 'btn ghost small', onclick: toggleListen }, '🎤 Écoute mon piano');
+
+  function shift(d) {
+    center = Math.max(48, Math.min(84, center + d));
+    build();
+  }
+
+  async function toggleListen() {
+    if (!listening) {
+      if (!micSupported()) return toast('Micro indisponible sur cet appareil.');
+      try {
+        await unlockAudio();
+        unsub = await mic.subscribe((m) => {
+          if (!alive) return;
+          kb.showPlayed(m);
+          showNote(m);
+        });
+        listening = true;
+        listenBtn.classList.add('on');
+        listenBtn.textContent = '🎤 J’écoute… (arrêter)';
+        bigNote.textContent = '👂';
+        toast('Joue sur ton vrai piano : je te dis quelle note c’est !');
+      } catch (e) {
+        toast('🎤 Je n’ai pas accès au micro.');
+      }
+    } else {
+      if (unsub) unsub();
+      unsub = null;
+      listening = false;
+      listenBtn.classList.remove('on');
+      listenBtn.textContent = '🎤 Écoute mon piano';
+    }
+    instRow.style.display = listening ? 'none' : '';
+    shiftL.style.visibility = shiftR.style.visibility = listening ? 'hidden' : 'visible';
+    build();
+  }
+
+  const page = h(
+    'div',
+    { class: 'page free-page with-nav' },
+    topBar(p, { title: 'Piano libre' }),
+    h('div', { class: 'free-controls' }, instRow, h('div', { class: 'row' }, namesBtn, listenBtn)),
+    sky,
+    h('div', { class: 'row center octave-row' }, shiftL, h('span', { class: 'small-help' }, 'Octave'), shiftR),
+    kbWrap,
+  );
+  app.append(page, bottomNav('free'));
+  requestAnimationFrame(build);
+  const onResize = () => alive && build();
+  window.addEventListener('resize', onResize);
+  keepAwake();
+  return {
+    destroy() {
+      alive = false;
+      window.removeEventListener('resize', onResize);
+      if (unsub) unsub();
+    },
+  };
+}

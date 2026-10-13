@@ -1,0 +1,17 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Test micro</title>
+<button id="go">Démarrer</button>
+<pre id="log"></pre>
+<script type="module">
+  // Page de test : affiche les notes entendues par le micro (utilisée par tests/mic.cjs).
+  import { mic } from '../js/pitch.js';
+  import { noteName } from '../js/music.js';
+  window.__notes = [];
+  document.getElementById('go').onclick = async () => {
+    await mic.subscribe((m) => {
+      window.__notes.push({ m, t: Math.round(performance.now()) });
+      document.getElementById('log').textContent += noteName(m) + ' ';
+    });
+  };
+</script>

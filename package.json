@@ -1,0 +1,9 @@
+{
+  "name": "piano-cosmos",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/pitch.test.mjs",
+    "serve": "http-server -p 8080 -c-1"
+  }
+}
