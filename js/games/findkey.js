@@ -4,7 +4,7 @@ import { sfxSuccess, sfxError } from '../audio.js';
 import { pc, pick, blackGroup } from '../music.js';
 import { starsFromMistakes } from './shell.js';
 
-export const config = (m) => ({ allowMode: true, kb: { range: m.range || [60, 76] } });
+export const config = (m) => ({ allowMode: true, kb: { range: m.range || [60, 72] } });
 
 // Toutes les touches du même groupe noir que `m`.
 function groupOf(m) {

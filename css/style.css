@@ -1071,6 +1071,7 @@ h3 {
 
 /* ---------- Clavier ---------- */
 .kb-wrap {
+  position: relative;
   flex: none;
   height: clamp(130px, 32vh, 250px);
   padding: 4px 6px calc(8px + env(safe-area-inset-bottom));
@@ -2064,4 +2065,50 @@ h3 {
 }
 .game.compact .lives {
   font-size: 17px;
+}
+
+.rotate-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  padding-bottom: 4px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.rotate-hint.static {
+  position: static;
+  padding: 0;
+}
+.rotate-hint[hidden],
+.octave-row[hidden] {
+  display: none;
+}
+.icon-btn:disabled {
+  opacity: 0.3;
+}
+
+/* Téléphone à l'horizontale : barre du bas plus fine, piano libre sans en-tête */
+@media (max-height: 520px) and (orientation: landscape) {
+  .page.with-nav {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom));
+  }
+  .bottom-nav {
+    padding-top: 3px;
+    padding-bottom: calc(3px + env(safe-area-inset-bottom));
+  }
+  .free-page .topbar {
+    display: none;
+  }
+  .free-sky {
+    min-height: 0;
+  }
+  .free-note {
+    font-size: 40px;
+  }
+  .free-controls .btn.small {
+    padding: 6px 12px;
+  }
 }

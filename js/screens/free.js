@@ -5,7 +5,7 @@ import { go } from '../router.js';
 import { Keyboard } from '../keyboard.js';
 import { playNote, INSTRUMENTS, unlockAudio } from '../audio.js';
 import { mic, micSupported } from '../pitch.js';
-import { noteName, noteColor, fitRange, pianoPreset, isBlack } from '../music.js';
+import { noteName, noteColor, screenRange, pianoPreset, isBlack, pc } from '../music.js';
 import { topBar, bottomNav } from './hub.js';
 
 export function freeScreen(app) {
@@ -14,7 +14,10 @@ export function freeScreen(app) {
   const piano = pianoPreset(state.settings().piano);
   let instrument = 'piano';
   let names = true;
-  let center = 66; // milieu de la plage affichée
+  // Quand tout le clavier ne tient pas (portrait), on montre une octave à partir de ce Do
+  const firstDo = piano.from + ((12 - pc(piano.from)) % 12);
+  const lastDo = piano.to - pc(piano.to);
+  let octFrom = Math.max(firstDo, Math.min(60, lastDo - 12));
   let listening = false;
   let unsub = null;
   let alive = true;
@@ -42,12 +45,13 @@ export function freeScreen(app) {
 
   function build() {
     const width = kbWrap.clientWidth || window.innerWidth;
-    const target = Math.max(8, Math.min(22, Math.floor(width / 46)));
-    let from;
-    let to;
-    if (listening) [from, to] = [piano.from, piano.to];
-    else [from, to] = fitRange(center - 2, center + 2, target, 36, 96);
-    kb = new Keyboard({ from, to, interactive: !listening, names: names ? 'all' : 'none', colors: true, onNote });
+    const r = listening ? { from: piano.from, to: piano.to, full: true } : screenRange(octFrom, octFrom + 12, piano, width);
+    // les flèches d'octave ne servent que si tout le clavier ne tient pas
+    octaveRow.hidden = r.full;
+    rotateHint.hidden = r.full || window.innerWidth > window.innerHeight;
+    shiftL.disabled = r.from <= firstDo;
+    shiftR.disabled = r.to >= lastDo;
+    kb = new Keyboard({ from: r.from, to: r.to, interactive: !listening, names: names ? 'all' : 'none', colors: true, onNote });
     kbWrap.innerHTML = '';
     kbWrap.append(kb.el);
     kbWrap.classList.toggle('display-only', listening);
@@ -90,7 +94,7 @@ export function freeScreen(app) {
   const listenBtn = h('button', { class: 'btn ghost small', onclick: toggleListen }, '🎤 Écoute mon piano');
 
   function shift(d) {
-    center = Math.max(48, Math.min(84, center + d));
+    octFrom = Math.max(firstDo, Math.min(lastDo - 12, octFrom + d));
     build();
   }
 
@@ -120,17 +124,19 @@ export function freeScreen(app) {
       listenBtn.textContent = '🎤 Écoute mon piano';
     }
     instRow.style.display = listening ? 'none' : '';
-    shiftL.style.visibility = shiftR.style.visibility = listening ? 'hidden' : 'visible';
     build();
   }
 
+  const octaveRow = h('div', { class: 'row center octave-row' }, shiftL, h('span', { class: 'small-help' }, 'Octave'), shiftR);
+  const rotateHint = h('div', { class: 'rotate-hint static', hidden: true }, '🔄 Tourne le téléphone pour voir tout le clavier');
   const page = h(
     'div',
     { class: 'page free-page with-nav' },
     topBar(p, { title: 'Piano libre' }),
     h('div', { class: 'free-controls' }, instRow, h('div', { class: 'row' }, namesBtn, listenBtn)),
     sky,
-    h('div', { class: 'row center octave-row' }, shiftL, h('span', { class: 'small-help' }, 'Octave'), shiftR),
+    rotateHint,
+    octaveRow,
     kbWrap,
   );
   app.append(page, bottomNav('free'));

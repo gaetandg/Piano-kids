@@ -5,7 +5,7 @@ import { mic, micSupported } from '../pitch.js';
 import { playNote, unlockAudio } from '../audio.js';
 import { say, stopSpeaking } from '../speech.js';
 import * as state from '../state.js';
-import { pianoPreset, fitRange, whiteCount } from '../music.js';
+import { pianoPreset, screenRange } from '../music.js';
 
 export function createShell(app, opts) {
   const {
@@ -53,6 +53,7 @@ export function createShell(app, opts) {
   const talk = h('div', { class: 'talk' }, mascotEl, bubble, actions);
   const stage = h('div', { class: 'stage' });
   const kbWrap = h('div', { class: 'kb-wrap' });
+  const rotateHint = h('div', { class: 'rotate-hint', hidden: true }, '🔄 Tourne le téléphone pour voir tout le clavier');
   root.append(header, talk, stage);
   if (showKeyboard) root.append(kbWrap);
   app.append(root);
@@ -111,17 +112,17 @@ export function createShell(app, opts) {
   }
 
   function computeRange() {
-    if (mode === 'piano' || kbOpts.range === 'piano') return [piano.from, piano.to];
+    if (mode === 'piano' || kbOpts.range === 'piano') return { from: piano.from, to: piano.to, full: true };
     const [a, b] = kbOpts.range || [60, 72];
     const width = kbWrap.clientWidth || app.clientWidth || window.innerWidth;
-    const need = whiteCount(a, b);
-    const target = Math.max(need, Math.min(kbOpts.maxWhites || 15, Math.floor(width / 50)));
-    return fitRange(a, b, target, Math.min(a, 36), Math.max(b, 96));
+    return screenRange(a, b, piano, width);
   }
 
   function buildKeyboard() {
     if (!showKeyboard) return;
-    const [from, to] = computeRange();
+    const { from, to, full } = computeRange();
+    // en portrait, le clavier est raccourci : on propose de tourner le téléphone
+    rotateHint.hidden = full || window.innerWidth > window.innerHeight;
     const interactive = kbOpts.interactive !== false && mode === 'screen';
     shell.keyboard = new Keyboard({
       from,
@@ -132,7 +133,7 @@ export function createShell(app, opts) {
       onNote: onTap,
     });
     kbWrap.innerHTML = '';
-    kbWrap.append(shell.keyboard.el);
+    kbWrap.append(rotateHint, shell.keyboard.el);
     kbWrap.classList.toggle('display-only', !interactive);
     kbWrap.classList.toggle('full', to - from > 30);
   }

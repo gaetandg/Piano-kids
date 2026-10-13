@@ -84,31 +84,17 @@ export function whiteCount(from, to) {
   return n;
 }
 
-// Agrandit une plage [from,to] pour avoir environ `targetWhites` touches blanches,
-// sans sortir de [minM,maxM]. Les extrémités sont toujours des touches blanches.
-export function fitRange(from, to, targetWhites, minM, maxM) {
-  if (isBlack(from)) from--;
-  if (isBlack(to)) to++;
-  let left = true;
-  let guard = 200;
-  while (whiteCount(from, to) < targetWhites && guard-- > 0) {
-    const canL = from - 1 >= minM;
-    const canR = to + 1 <= maxM;
-    if (!canL && !canR) break;
-    if ((left && canL) || !canR) {
-      from--;
-      if (isBlack(from)) from--;
-    } else {
-      to++;
-      if (isBlack(to)) to++;
-    }
-    left = !left;
-  }
-  if (from < minM) from = minM;
-  if (to > maxM) to = maxM;
-  if (isBlack(from)) from++;
-  if (isBlack(to)) to--;
-  return [from, to];
+// Plage du clavier à l'écran.
+// Si tout le piano tient (touches blanches d'au moins 34 px), on l'affiche en entier, comme le vrai.
+// Sinon (téléphone en portrait) : des octaves complètes, de Do à Do, autour des notes utiles [a, b].
+export function screenRange(a, b, piano, width) {
+  if (width / whiteCount(piano.from, piano.to) >= 34) return { from: piano.from, to: piano.to, full: true };
+  let from = a - pc(a);
+  let to = b + ((12 - pc(b)) % 12);
+  // une octave de plus de chaque côté si les touches restent assez larges
+  while (whiteCount(from, to + 12) * 44 <= width && to + 12 <= Math.max(piano.to, b)) to += 12;
+  while (whiteCount(from - 12, to) * 44 <= width && from - 12 >= Math.min(piano.from, a)) from -= 12;
+  return { from, to, full: false };
 }
 
 // Ramène une note dans la plage affichée en la décalant d'octaves.
