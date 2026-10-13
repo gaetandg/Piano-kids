@@ -22,6 +22,7 @@ export default function namenote(shell, mission, finish) {
   const choices = h('div', { class: 'choices' });
   const counter = h('div', { class: 'counter' });
   shell.stage.append(counter, choices, replay);
+  shell.dock(replay);
 
   // un bouton par nom de note
   const names = [...new Set(notes.map((m) => pc(m)))].sort((a, b) => a - b);

@@ -29,11 +29,9 @@ export default function songGame(shell, mission, finish) {
   lane.append(track, h('div', { class: 'lane-cursor' }));
   const listenBtn = h('button', { class: 'btn sound', onclick: () => (demoing ? stopDemo() : demo()) }, '🔊 Écouter');
   const restartBtn = h('button', { class: 'btn ghost', onclick: restart }, '↺ Recommencer');
-  shell.stage.append(
-    h('div', { class: 'song-title' }, song.emoji + ' ' + song.title),
-    lane,
-    h('div', { class: 'row center' }, listenBtn, restartBtn),
-  );
+  const controls = h('div', { class: 'row center' }, listenBtn, restartBtn);
+  shell.stage.append(h('div', { class: 'song-title' }, song.emoji + ' ' + song.title), lane, controls);
+  shell.dock(controls);
 
   const bubbles = notes.map((n, i) => {
     const b = h(

@@ -23,6 +23,7 @@ export default function intro(shell, mission, finish) {
   nav.append(prevBtn, nextBtn);
   card.append(extra, tryBox, nav);
   shell.stage.append(card);
+  shell.dock(nav);
 
   function displayed() {
     return shell.keyboard ? shell.keyboard.midis() : [];
@@ -141,7 +142,10 @@ export default function intro(shell, mission, finish) {
     if (ok) {
       shell.keyboard.flash(m, 'good');
       t.pos++;
-      if (t.any) shell.say(`Je t’ai entendu ! C’était un ${noteName(m)}.`, 'excited', t.pos >= t.count);
+      if (t.any) {
+        const intro = shell.mode === 'piano' ? 'Je t’ai entendu !' : 'Bravo !';
+        shell.say(`${intro} C’était un ${noteName(m)}.`, 'excited', t.pos >= t.count);
+      }
       renderTry();
       if (t.pos >= t.count) {
         tryState = null;

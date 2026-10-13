@@ -24,16 +24,12 @@ export function createShell(app, opts) {
 
   const root = h('div', { class: 'game' });
   const micDot = h('span', { class: 'mic-dot', title: 'Micro' }, '🎤');
+  // Choix « vrai piano » / « écran » : les deux options sont visibles, celle choisie est allumée
+  const pianoBtn = h('button', { onclick: () => mode !== 'piano' && setMode('piano') });
+  const screenBtn = h('button', { onclick: () => mode !== 'screen' && setMode('screen') });
   const modeBtn = allowMode
-    ? h('button', { class: 'mode-btn', onclick: () => setMode(mode === 'piano' ? 'screen' : 'piano') })
+    ? h('div', { class: 'mode-seg', role: 'group', 'aria-label': 'Jouer sur' }, pianoBtn, screenBtn)
     : null;
-  const header = h(
-    'div',
-    { class: 'game-header' },
-    h('button', { class: 'icon-btn', 'aria-label': 'Quitter', onclick: onExit }, '✕'),
-    h('div', { class: 'game-title' }, title),
-    modeBtn || h('span'),
-  );
   const fill = h('div', { class: 'progress-fill' });
   const rocket = h('div', { class: 'progress-rocket' }, '🚀');
   const progress = h(
@@ -43,12 +39,21 @@ export function createShell(app, opts) {
     rocket,
     h('span', { class: 'progress-goal' }, '🪐'),
   );
+  const header = h(
+    'div',
+    { class: 'game-header' },
+    h('button', { class: 'icon-btn', 'aria-label': 'Quitter', onclick: onExit }, '✕'),
+    h('div', { class: 'game-title' }, title),
+    progress,
+    modeBtn || h('span'),
+  );
   const mascotEl = mascot('happy', 'small');
   const bubble = h('div', { class: 'bubble' });
-  const talk = h('div', { class: 'talk' }, mascotEl, bubble);
+  const actions = h('div', { class: 'talk-actions' });
+  const talk = h('div', { class: 'talk' }, mascotEl, bubble, actions);
   const stage = h('div', { class: 'stage' });
   const kbWrap = h('div', { class: 'kb-wrap' });
-  root.append(header, progress, talk, stage);
+  root.append(header, talk, stage);
   if (showKeyboard) root.append(kbWrap);
   app.append(root);
 
@@ -160,11 +165,33 @@ export function createShell(app, opts) {
 
   function renderModeBtn() {
     if (!modeBtn) return;
-    modeBtn.innerHTML = '';
-    if (mode === 'piano') modeBtn.append(micDot, h('span', {}, 'Vrai piano'));
-    else modeBtn.append(h('span', {}, '📱 Écran'));
-    modeBtn.classList.toggle('screen', mode === 'screen');
+    pianoBtn.innerHTML = '';
+    pianoBtn.append(mode === 'piano' ? micDot : h('span', {}, '🎹'), h('span', { class: 'seg-label' }, 'Piano'));
+    screenBtn.innerHTML = '';
+    screenBtn.append(h('span', {}, '📱'), h('span', { class: 'seg-label' }, 'Écran'));
+    pianoBtn.classList.toggle('on', mode === 'piano');
+    screenBtn.classList.toggle('on', mode === 'screen');
   }
+
+  // Téléphone à l'horizontale avec peu de hauteur : on range les boutons à côté de Cosmo
+  // pour qu'ils restent visibles sans faire défiler.
+  const docked = [];
+  const isCompact = () => window.innerHeight < 520 && window.innerWidth > window.innerHeight;
+  function placeDocked() {
+    const compact = isCompact();
+    root.classList.toggle('compact', compact);
+    for (const d of docked) {
+      if (compact) {
+        if (d.el.parentNode !== actions) actions.append(d.el);
+      } else if (d.el.parentNode !== d.parent) {
+        d.parent.insertBefore(d.el, d.next && d.next.parentNode === d.parent ? d.next : null);
+      }
+    }
+  }
+  shell.dock = (el) => {
+    docked.push({ el, parent: el.parentNode, next: el.nextSibling });
+    placeDocked();
+  };
 
   function setMode(m, silent = false) {
     if (m === 'piano' && !micSupported()) {
@@ -194,6 +221,7 @@ export function createShell(app, opts) {
     clearTimeout(resizeT);
     resizeT = setTimeout(() => {
       if (destroyed) return;
+      placeDocked();
       buildKeyboard();
       if (shell.onRefresh) shell.onRefresh();
     }, 150);
@@ -208,6 +236,7 @@ export function createShell(app, opts) {
   };
 
   renderModeBtn();
+  placeDocked();
   // Le clavier a besoin de la largeur réelle : on attend la mise en page.
   buildKeyboard();
   requestAnimationFrame(() => {

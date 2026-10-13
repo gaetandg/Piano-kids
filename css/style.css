@@ -900,6 +900,8 @@ h3 {
 }
 .game-header {
   display: flex;
+  flex-wrap: wrap;
+  row-gap: 0;
   align-items: center;
   gap: 10px;
   padding: 8px 12px 4px;
@@ -913,21 +915,33 @@ h3 {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.mode-btn {
+.mode-seg {
+  display: inline-flex;
+  flex: none;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px;
+}
+.mode-seg button {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  border: 2px solid var(--green);
-  background: rgba(46, 213, 115, 0.18);
+  gap: 5px;
+  border: none;
+  background: none;
   border-radius: 999px;
-  padding: 6px 12px;
+  padding: 5px 11px;
   font-size: 15px;
   font-weight: 600;
+  color: var(--muted);
   white-space: nowrap;
 }
-.mode-btn.screen {
-  border-color: var(--blue);
-  background: rgba(56, 198, 244, 0.18);
+.mode-seg button.on {
+  background: var(--green);
+  color: var(--ink);
+}
+.mode-seg button:last-child.on {
+  background: var(--blue);
 }
 .mic-dot {
   --lvl: 0;
@@ -948,8 +962,39 @@ h3 {
 .progress {
   position: relative;
   height: 30px;
-  margin: 0 14px;
+  order: 10;
+  flex: 1 0 100%;
+}
+.talk-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex: none;
+}
+.talk-actions:empty {
+  display: none;
+}
+.talk-actions .row,
+.talk-actions .slide-nav {
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+/* téléphone à l'horizontale : tout sur une ligne pour gagner de la hauteur */
+.game.compact .game-header {
+  flex-wrap: nowrap;
+}
+.game.compact .game-header .progress {
+  order: 0;
+  flex: 1 1 auto;
+  min-width: 90px;
+}
+.game.compact .game-title {
+  flex: 0 1 auto;
+  max-width: 32%;
+}
+.game.compact .counter,
+.game.compact .song-title {
+  display: none;
 }
 .progress-track {
   position: absolute;
@@ -1068,7 +1113,7 @@ h3 {
   border: 1px solid #8f96b8;
   border-top: none;
   border-radius: 0 0 9px 9px;
-  padding-bottom: 6%;
+  padding-bottom: 7px;
   gap: 3px;
   z-index: 1;
 }
@@ -2006,7 +2051,17 @@ h3 {
   .choice {
     min-width: 70px;
   }
-  .mode-btn span:last-child {
-    font-size: 13px;
+  .mode-seg .seg-label {
+    display: none;
   }
+}
+
+.game.compact .stage {
+  gap: 4px;
+}
+.game.compact .ufo {
+  font-size: 34px;
+}
+.game.compact .lives {
+  font-size: 17px;
 }

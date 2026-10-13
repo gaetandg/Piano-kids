@@ -20,6 +20,7 @@ export default function simon(shell, mission, finish) {
   const livesEl = h('div', { class: 'lives' });
   const replayBtn = h('button', { class: 'btn sound', onclick: () => listening && playSeq() }, '🔊 Réécouter');
   shell.stage.append(livesEl, ufo, code, replayBtn);
+  shell.dock(replayBtn);
 
   function renderCode() {
     code.innerHTML = '';
