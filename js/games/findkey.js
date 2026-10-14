@@ -29,30 +29,24 @@ export default function findkey(shell, mission, finish) {
   // ----- Mode « trouve tous les Do » -----
   const fa = mission.findAll;
   let found = new Set();
-  let hits = 0;
 
   function allTargets() {
     return shell.keyboard.midis().filter((m) => pc(m) === fa.pc);
   }
 
   function needed() {
-    if (shell.mode === 'piano') {
-      let n = 0;
-      for (let m = shell.piano.from; m <= shell.piano.to; m++) if (pc(m) === fa.pc) n++;
-      return n;
-    }
     return allTargets().length;
   }
 
   function renderFindAll() {
     const n = needed();
-    const got = shell.mode === 'piano' ? hits : found.size;
+    const got = found.size;
     big.textContent = shell.mode === 'piano' ? `Joue les ${n} Do de ton piano !` : `Trouve les ${n} Do !`;
     counter.innerHTML = '';
     for (let k = 0; k < n; k++) counter.append(h('span', { class: 'cdot' + (k < got ? ' on red' : '') }, k < got ? '★' : '○'));
     shell.setProgress(got / n);
     shell.keyboard.clearMarks();
-    if (shell.mode === 'screen') found.forEach((m) => shell.keyboard.mark(m));
+    found.forEach((m) => shell.keyboard.mark(m));
   }
 
   // ----- Mode normal : une consigne par manche -----
@@ -77,8 +71,8 @@ export default function findkey(shell, mission, finish) {
 
   function matches(m) {
     if (!prompt.pcs.includes(pc(m))) return false;
-    // En mode écran, on vérifie aussi l'endroit (grave / milieu / aigu)
-    if (shell.mode === 'screen' && prompt.zone) {
+    // On vérifie aussi l'endroit (grave / milieu / aigu)
+    if (prompt.zone) {
       if (prompt.zone === 'middle') return m === 60;
       if (prompt.zone === 'low') return m < 60;
       if (prompt.zone === 'high') return m > 60;
@@ -94,14 +88,16 @@ export default function findkey(shell, mission, finish) {
     if (busy || !alive || (!fa && !prompt)) return;
     if (fa) {
       if (pc(m) === fa.pc) {
-        if (shell.mode === 'screen') {
-          if (found.has(m)) return;
-          found.add(m);
-        } else hits++;
+        if (found.has(m)) {
+          shell.say('Celui-là, tu l’as déjà trouvé ! Cherche un autre Do.', 'think', false);
+          return;
+        }
+        if (!shell.keyboard.midis().includes(m)) return;
+        found.add(m);
         shell.keyboard.flash(m, 'good');
         sfxSuccess();
         renderFindAll();
-        const got = shell.mode === 'piano' ? hits : found.size;
+        const got = found.size;
         if (got >= needed()) {
           busy = true;
           shell.say('Tu as trouvé tous les Do ! 🎉', 'excited');

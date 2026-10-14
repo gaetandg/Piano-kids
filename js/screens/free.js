@@ -7,6 +7,7 @@ import { playNote, INSTRUMENTS, unlockAudio } from '../audio.js';
 import { mic, micSupported } from '../pitch.js';
 import { noteName, noteColor, screenRange, pianoPreset, isBlack, pc } from '../music.js';
 import { topBar, bottomNav } from './hub.js';
+import { needsCalibration } from './calibrate.js';
 
 export function freeScreen(app) {
   const p = state.currentProfile();
@@ -101,6 +102,7 @@ export function freeScreen(app) {
   async function toggleListen() {
     if (!listening) {
       if (!micSupported()) return toast('Micro indisponible sur cet appareil.');
+      if (needsCalibration()) return go('calibrate', { next: { name: 'free' } });
       try {
         await unlockAudio();
         unsub = await mic.subscribe((m) => {

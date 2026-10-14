@@ -8,6 +8,7 @@ import { recordResult } from '../rewards.js';
 import { createShell } from '../games/shell.js';
 import { sfxStar, sfxBigSuccess, sfxWhoosh } from '../audio.js';
 import { say } from '../speech.js';
+import { needsCalibration } from './calibrate.js';
 
 import * as intro from '../games/intro.js';
 import * as findkey from '../games/findkey.js';
@@ -39,7 +40,10 @@ export function gameScreen(app, params) {
   const mod = GAMES[mission.type];
   const cfg = mod.config(mission);
   const exit = () => back(isLibrarySong ? 'songs' : 'planet', isLibrarySong ? {} : { planet: mission.planetId });
-  const shell = createShell(app, { title: mission.title, onExit: exit, ...cfg });
+  // Première fois au vrai piano : on règle d'abord le micro (octave du clavier)
+  const calibrate = () => go('calibrate', { next: { name: 'game', params } }, { replace: true });
+  if (cfg.allowMode !== false && p.inputMode !== 'screen' && needsCalibration()) return calibrate();
+  const shell = createShell(app, { title: mission.title, onExit: exit, onNeedCalibration: calibrate, ...cfg });
 
   let game = null;
   let finished = false;

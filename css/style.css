@@ -2122,3 +2122,11 @@ h3 {
 .calib-msg:empty {
   display: none;
 }
+
+.kb-wrap.calib {
+  height: clamp(100px, 26vw, 34vh);
+  margin: 12px 0;
+}
+.calibrate-page .calib-msg {
+  text-align: center;
+}

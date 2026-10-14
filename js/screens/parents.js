@@ -83,28 +83,21 @@ export function parentsScreen(app) {
   };
   renderMicKb();
 
-  // Réglage de l'octave : on joue le Do du milieu, l'app mesure le décalage éventuel
+  // Réglage de l'octave (écran dédié : on joue la dernière touche blanche)
   const shiftInfo = h('p', { class: 'small-help' });
-  const calibMsg = h('div', { class: 'calib-msg' });
-  let calibrating = false;
-  let calibHits = [];
-  const describeShift = (sh) =>
-    !sh
-      ? 'Réglage de l’octave : aucun décalage.'
-      : `Réglage de l’octave : votre piano sonne ${Math.abs(sh) === 12 ? 'une octave' : Math.abs(sh) / 12 + ' octaves'} plus ${sh < 0 ? 'grave' : 'aigu'} que prévu (corrigé).`;
-  const renderShift = () => (shiftInfo.textContent = describeShift(state.settings().octaveShift));
-  renderShift();
+  const sh = state.settings().octaveShift;
+  shiftInfo.textContent = !state.settings().octaveCalibrated
+    ? 'Octave : pas encore réglée.'
+    : !sh
+      ? 'Octave : réglée, aucun décalage.'
+      : `Octave : réglée, ce piano sonne ${Math.abs(sh) === 12 ? 'une octave' : Math.abs(sh) / 12 + ' octaves'} plus ${sh < 0 ? 'grave' : 'aigu'} que prévu (corrigé).`;
   const calibBtn = h(
     'button',
     {
       class: 'btn ghost',
-      onclick: async () => {
-        if (!unsub) await toggleTest();
-        if (!unsub) return;
-        calibrating = true;
-        calibHits = [];
-        micKb.setTargets([60], { label: true });
-        calibMsg.textContent = '🎯 Jouez le Do qui clignote sur le dessin (le Do du milieu), deux fois.';
+      onclick: () => {
+        stopTest();
+        go('calibrate', {});
       },
     },
     '🎯 Régler l’octave',
@@ -114,32 +107,6 @@ export function parentsScreen(app) {
     heard.textContent = noteName(m);
     heard.style.color = noteColor(m);
     if (micKb) micKb.showPlayed(m);
-    if (!calibrating) return;
-    const raw = m + mic.octaveShift; // ce que le piano fait vraiment entendre
-    if (pc(raw) !== 0) {
-      calibHits = [];
-      calibMsg.textContent = `J’ai entendu un ${noteName(raw)}. Jouez le Do qui clignote (juste à gauche de 2 touches noires).`;
-      return;
-    }
-    calibHits.push(raw);
-    if (calibHits.length < 2) {
-      calibMsg.textContent = 'Un Do, très bien ! Encore une fois…';
-      return;
-    }
-    const [a, b] = calibHits.slice(-2);
-    if (a !== b) {
-      calibHits = [b];
-      calibMsg.textContent = 'Les deux Do ne se ressemblaient pas, encore une fois…';
-      return;
-    }
-    const shift = Math.round((b - 60) / 12) * 12;
-    state.setSetting('octaveShift', shift);
-    mic.setOctaveShift(shift);
-    calibrating = false;
-    micKb.setTargets([]);
-    calibMsg.textContent =
-      shift === 0 ? '✅ Parfait : votre piano est bien reconnu, rien à corriger.' : '✅ ' + describeShift(shift);
-    renderShift();
   }
 
   let unsub = null;
@@ -164,8 +131,6 @@ export function parentsScreen(app) {
     if (unsub) unsub();
     if (unLevel) unLevel();
     unsub = unLevel = null;
-    calibrating = false;
-    if (micKb) micKb.setTargets([]);
     testBtn.textContent = '🎤 Tester le micro';
   }
   page.append(
@@ -180,12 +145,11 @@ export function parentsScreen(app) {
       level,
       heard,
       micKbBox,
-      calibMsg,
       shiftInfo,
       h(
         'p',
         { class: 'small-help' },
-        'Si la touche allumée est la bonne mais une octave trop à gauche ou à droite, appuyez sur « Régler l’octave ».',
+        'Si la touche allumée est la bonne note mais une octave trop à gauche ou à droite, appuyez sur « Régler l’octave » et jouez la dernière touche blanche (tout à droite).',
       ),
       h('label', { class: 'field' }, h('span', {}, 'Sensibilité'), slider),
       h(

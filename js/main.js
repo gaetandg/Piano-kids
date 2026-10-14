@@ -13,6 +13,7 @@ import { gameScreen } from './screens/game.js';
 import { freeScreen } from './screens/free.js';
 import { songsScreen, albumScreen } from './screens/library.js';
 import { parentsScreen, stickerGuideScreen } from './screens/parents.js';
+import { calibrateScreen } from './screens/calibrate.js';
 
 const s = state.settings();
 setVolume(s.volume);
@@ -34,6 +35,7 @@ register('songs', songsScreen);
 register('album', albumScreen);
 register('parents', parentsScreen);
 register('stickerGuide', stickerGuideScreen);
+register('calibrate', calibrateScreen);
 
 // Le son ne peut démarrer qu'après un premier toucher de l'écran.
 document.addEventListener('pointerdown', () => unlockAudio(), { capture: true });

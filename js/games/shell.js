@@ -6,6 +6,7 @@ import { playNote, unlockAudio } from '../audio.js';
 import { say, stopSpeaking } from '../speech.js';
 import * as state from '../state.js';
 import { pianoPreset, screenRange } from '../music.js';
+import { needsCalibration } from '../screens/calibrate.js';
 
 export function createShell(app, opts) {
   const {
@@ -14,6 +15,7 @@ export function createShell(app, opts) {
     allowMode = true, // l'enfant peut choisir vrai piano / écran
     showKeyboard = true,
     kb = {}, // {range:[a,b], names, colors, interactive}
+    onNeedCalibration = null, // appelé si on passe au vrai piano sans avoir réglé le micro
   } = opts;
 
   const profile = state.currentProfile();
@@ -201,6 +203,7 @@ export function createShell(app, opts) {
     }
     mode = m;
     if (profile && allowMode) state.updateProfile(profile.id, { inputMode: m });
+    if (m === 'piano' && onNeedCalibration && needsCalibration()) return onNeedCalibration();
     renderModeBtn();
     buildKeyboard();
     if (mode === 'piano') startMic();

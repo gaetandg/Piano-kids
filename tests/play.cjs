@@ -124,6 +124,25 @@ const NAMES = { Do: 0, Ré: 2, Mi: 4, Fa: 5, Sol: 7, La: 9, Si: 11 };
   check('code des Martiens réussi', (await resultStars()) >= 2, `(${await resultStars()})`);
   if (process.env.SHOTS) await page.screenshot({ path: process.env.SHOTS + '/result.png' });
 
+  // 5. Do grave / du milieu / aigu : un Do au mauvais endroit ne doit pas être accepté
+  await goGame('p2-zones');
+  await page.waitForTimeout(3200);
+  let refused = 0;
+  for (let r = 0; r < 6; r++) {
+    if (await page.$('.modal .result')) break;
+    const prompt = await page.textContent('.big-prompt');
+    const right = prompt.includes('milieu') ? 60 : prompt.includes('grave') ? 48 : 72;
+    const wrong = right === 60 ? 72 : 60;
+    const before = await page.textContent('.counter');
+    await tapMidi(wrong);
+    await page.waitForTimeout(300);
+    if ((await page.textContent('.counter')) === before && !(await page.$('.modal .result'))) refused++;
+    await tapMidi(right);
+    await page.waitForTimeout(1300);
+  }
+  await page.waitForSelector('.modal .result', { timeout: 5000 });
+  check('Do au mauvais endroit refusé', refused === 6, `(${refused}/6)`);
+
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('pianoKids.v1')).profiles[0]);
   check(
     'progression enregistrée',

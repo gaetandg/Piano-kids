@@ -47,6 +47,19 @@ fs.mkdirSync(OUT, { recursive: true });
       await shot('01-welcome');
       await page.fill('.name-input', 'Léa');
       await page.click('text=C’est parti');
+      // premier jeu au vrai piano : l'écran de réglage du micro s'affiche d'abord
+      await page.evaluate(() => {
+        history.pushState({ name: 'game', params: { mission: 'p1-intro' } }, '');
+        dispatchEvent(new PopStateEvent('popstate', { state: { name: 'game', params: { mission: 'p1-intro' } } }));
+      });
+      await page.waitForTimeout(500);
+      await shot('01b-calibrate');
+      await page.click('text=Plus tard');
+      await page.waitForTimeout(300);
+      await page.evaluate(() => {
+        history.pushState({ name: 'hub', params: {} }, '');
+        dispatchEvent(new PopStateEvent('popstate', { state: { name: 'hub', params: {} } }));
+      });
       await page.waitForTimeout(400);
       await shot('02-hub');
       // première planète
