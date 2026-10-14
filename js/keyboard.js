@@ -28,6 +28,7 @@ export class Keyboard {
     this.el.style.setProperty('--wk', w + '%');
     whites.forEach((m, i) => {
       const k = h('div', { class: 'key white', 'data-midi': m });
+      k.style.setProperty('--pc', noteColor(m));
       k.style.left = i * w + '%';
       k.style.width = w + '%';
       if (this.colors) {
@@ -106,6 +107,7 @@ export class Keyboard {
   trigger(m) {
     const k = this.keys.get(m);
     if (k) k.classList.add('down');
+    this.showPlayed(m);
     if (this.onNote && this.enabled !== false) this.onNote(m);
   }
 
@@ -114,14 +116,19 @@ export class Keyboard {
     if (k) k.classList.remove('down');
   }
 
-  // Montre brièvement une touche jouée (ex. détectée au micro).
+  // Allume une touche jouée dans sa couleur, avec son nom (ex. note entendue au micro).
   showPlayed(midi) {
     const m = foldIntoRange(midi, this.from, this.to);
     const k = m != null && this.keys.get(m);
     if (!k) return null;
-    k.classList.add('down');
+    k.classList.add('lit');
+    if (!isBlack(m) && !k.querySelector('.plabel')) k.append(h('span', { class: 'plabel' }, noteName(m)));
     clearTimeout(k._t);
-    k._t = setTimeout(() => k.classList.remove('down'), 260);
+    k._t = setTimeout(() => {
+      k.classList.remove('lit');
+      const l = k.querySelector('.plabel');
+      if (l) l.remove();
+    }, 800);
     return m;
   }
 

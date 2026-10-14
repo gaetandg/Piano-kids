@@ -75,6 +75,7 @@ export function createShell(app, opts) {
     piano,
     keyboard: null,
     handler: null, // (midi, source) => void
+    expect: null, // (midi) => vrai si c'est une note attendue (pour choisir dans un accord)
     playTaps: true, // jouer le son quand on touche l'écran
     inputEnabled: true,
     onRefresh: null, // appelé après changement de mode ou de taille
@@ -107,9 +108,11 @@ export function createShell(app, opts) {
     if (shell.handler) shell.handler(m, 'touch');
   }
 
-  function onMic(m) {
+  function onMic(notes) {
     if (!shell.inputEnabled || destroyed) return;
-    if (shell.keyboard) shell.keyboard.showPlayed(m);
+    if (shell.keyboard) notes.forEach((m) => shell.keyboard.showPlayed(m));
+    // Accord : si une des notes est celle attendue, c'est elle qui compte (une seule réponse)
+    const m = (shell.expect && notes.find((x) => shell.expect(x))) ?? notes[0];
     if (shell.handler) shell.handler(m, 'mic');
   }
 

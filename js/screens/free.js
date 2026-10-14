@@ -5,7 +5,7 @@ import { go } from '../router.js';
 import { Keyboard } from '../keyboard.js';
 import { playNote, INSTRUMENTS, unlockAudio } from '../audio.js';
 import { mic, micSupported } from '../pitch.js';
-import { noteName, noteColor, screenRange, pianoPreset, isBlack, pc } from '../music.js';
+import { noteName, noteColor, screenRange, pianoPreset, isBlack, pc, foldIntoRange } from '../music.js';
 import { topBar, bottomNav } from './hub.js';
 import { needsCalibration } from './calibrate.js';
 
@@ -33,15 +33,25 @@ export function freeScreen(app) {
     showNote(m);
   }
 
-  function showNote(m) {
-    bigNote.textContent = noteName(m);
-    bigNote.style.color = isBlack(m) ? '#fff' : noteColor(m);
+  // `notes` : une note ou un accord (tableau), affiché du grave à l'aigu
+  function showNote(notes) {
+    const list = (Array.isArray(notes) ? notes : [notes]).slice().sort((a, b) => a - b);
+    bigNote.innerHTML = '';
+    list.forEach((m, i) => {
+      if (i) bigNote.append(h('span', { class: 'plus' }, '+'));
+      const s = h('span', {}, noteName(m));
+      s.style.color = isBlack(m) ? '#fff' : noteColor(m);
+      bigNote.append(s);
+    });
+    bigNote.classList.toggle('chord', list.length > 1);
     bigNote.classList.remove('pop');
     void bigNote.offsetWidth;
     bigNote.classList.add('pop');
-    const r = kb && kb.rectOf(m);
-    if (r)
-      floatStar(r.left + r.width / 2 - 10, r.top - 10, isBlack(m) ? '#ffd60a' : noteColor(m), ['★', '✦', '●', '♪', '♫'][m % 5]);
+    for (const m of list) {
+      const r = kb && kb.rectOf(foldIntoRange(m, kb.from, kb.to) ?? m);
+      if (r)
+        floatStar(r.left + r.width / 2 - 10, r.top - 10, isBlack(m) ? '#ffd60a' : noteColor(m), ['★', '✦', '●', '♪', '♫'][m % 5]);
+    }
   }
 
   function build() {
@@ -105,10 +115,10 @@ export function freeScreen(app) {
       if (needsCalibration()) return go('calibrate', { next: { name: 'free' } });
       try {
         await unlockAudio();
-        unsub = await mic.subscribe((m) => {
+        unsub = await mic.subscribe((notes) => {
           if (!alive) return;
-          kb.showPlayed(m);
-          showNote(m);
+          notes.forEach((m) => kb.showPlayed(m));
+          showNote(notes);
         });
         listening = true;
         listenBtn.classList.add('on');

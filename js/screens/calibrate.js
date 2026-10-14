@@ -67,8 +67,9 @@ export function calibrateScreen(app, params) {
     unsub = unLevel = null;
   }
 
-  function onNote(heard) {
+  function onNote(notes) {
     if (done) return;
+    const heard = notes.find((m) => pc(m) === pc(target)) ?? notes[0];
     const raw = heard + mic.octaveShift; // ce que le piano fait vraiment entendre
     if (pc(raw) !== pc(target)) {
       hits = [];

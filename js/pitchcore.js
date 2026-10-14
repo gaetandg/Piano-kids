@@ -113,46 +113,170 @@ class FFT {
 const HARM_W = [0, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.35];
 const MAX_HZ = 6000;
 
+const midiHz = (midi) => 440 * Math.pow(2, (midi - 69) / 12);
+const harmHz = (f, k) => f * k * Math.sqrt(1 + 0.0004 * k * k); // légère inharmonicité du piano
+
+// Valeur maximale du spectre autour d'une fréquence.
+function peakAt(D, binHz, fHz) {
+  const bin = fHz / binHz;
+  const tol = Math.max(0.5, bin * 0.012);
+  let lo = Math.max(1, Math.round(bin - tol));
+  const hi = Math.min(D.length - 1, Math.round(bin + tol));
+  let m = 0;
+  for (; lo <= hi; lo++) if (D[lo] > m) m = D[lo];
+  return m;
+}
+
+function harmonicScore(D, binHz, midi) {
+  const f = midiHz(midi);
+  let s = 0;
+  for (let k = 1; k < HARM_W.length; k++) {
+    const fk = harmHz(f, k);
+    if (fk > MAX_HZ) break;
+    s += HARM_W[k] * peakAt(D, binHz, fk);
+  }
+  return s;
+}
+
+// Les harmoniques doivent ressortir par rapport à ce qu'il y a entre elles.
+function harmonicity(D, binHz, midi) {
+  const f = midiHz(midi);
+  let on = 0;
+  let off = 0;
+  for (let k = 1; k <= 6; k++) {
+    const fk = harmHz(f, k);
+    if (fk > MAX_HZ) break;
+    on += peakAt(D, binHz, fk);
+    off += (peakAt(D, binHz, fk * (1 + 0.5 / k)) + peakAt(D, binHz, fk * (1 - 0.5 / k))) / 2;
+  }
+  return on / (off + 1e-9);
+}
+
+// Efface les harmoniques d'une note (pour chercher les autres notes d'un accord).
+function removeHarmonics(D, binHz, midi) {
+  const f = midiHz(midi);
+  for (let k = 1; k <= 16; k++) {
+    const fk = harmHz(f, k);
+    if (fk > MAX_HZ) break;
+    const bin = fk / binHz;
+    const w = Math.max(0.5, bin * 0.012) + 1.5; // + largeur du pic (fenêtre de Hann)
+    for (let b = Math.max(1, Math.floor(bin - w)); b <= Math.min(D.length - 1, Math.ceil(bin + w)); b++) D[b] = 0;
+  }
+}
+
 // Trouve la note dont les harmoniques expliquent le mieux le spectre `D`.
-// Renvoie {midi, harmonicity} ou null.
+// Renvoie {midi, score, harmonicity} ou null.
 export function noteFromSpectrum(D, binHz, minMidi = 36, maxMidi = 100) {
-  const nb = D.length;
-  const peak = (fHz) => {
-    const bin = fHz / binHz;
-    const tol = Math.max(0.5, bin * 0.012);
-    let lo = Math.max(1, Math.round(bin - tol));
-    const hi = Math.min(nb - 1, Math.round(bin + tol));
-    let m = 0;
-    for (; lo <= hi; lo++) if (D[lo] > m) m = D[lo];
-    return m;
-  };
   let best = -1;
   let bestS = 0;
   for (let midi = minMidi; midi <= maxMidi; midi++) {
-    const f = 440 * Math.pow(2, (midi - 69) / 12);
-    let s = 0;
-    for (let k = 1; k < HARM_W.length; k++) {
-      const fk = f * k * Math.sqrt(1 + 0.0004 * k * k);
-      if (fk > MAX_HZ) break;
-      s += HARM_W[k] * peak(fk);
-    }
+    const s = harmonicScore(D, binHz, midi);
     if (s > bestS) {
       bestS = s;
       best = midi;
     }
   }
   if (best < 0) return null;
-  // Harmonicité : les harmoniques doivent ressortir par rapport à ce qu'il y a entre elles
-  const f = 440 * Math.pow(2, (best - 69) / 12);
-  let on = 0;
-  let off = 0;
-  for (let k = 1; k <= 6; k++) {
-    const fk = f * k * Math.sqrt(1 + 0.0004 * k * k);
-    if (fk * 1.0 > MAX_HZ) break;
-    on += peak(fk);
-    off += (peak(fk * (1 + 0.5 / k)) + peak(fk * (1 - 0.5 / k))) / 2;
+  return { midi: best, score: bestS, harmonicity: harmonicity(D, binHz, best) };
+}
+
+// Cherche dans le spectre R des notes dont la fondamentale est bien présente
+// (efface au fur et à mesure les harmoniques des notes trouvées).
+function findNotesWithFundamental(R, binHz, refScore, maxPeak, count, minMidi, maxMidi) {
+  const notes = [];
+  while (notes.length < count) {
+    let best = -1;
+    let bestS = 0;
+    for (let midi = minMidi; midi <= maxMidi; midi++) {
+      if (peakAt(R, binHz, midiHz(midi)) < 0.3 * maxPeak) continue;
+      const sc = harmonicScore(R, binHz, midi);
+      if (sc > bestS) {
+        bestS = sc;
+        best = midi;
+      }
+    }
+    if (best < 0 || bestS < 0.25 * refScore) break;
+    notes.push(best);
+    removeHarmonics(R, binHz, best);
   }
-  return { midi: best, harmonicity: on / (off + 1e-9) };
+  return notes;
+}
+
+// Part de l'énergie ajoutée qui tombe sur les harmoniques des notes trouvées :
+// presque tout pour de vraies notes, peu pour un bruit (claquement, voix, objet qui tombe).
+export function explainedEnergy(D, binHz, notes) {
+  const inside = new Uint8Array(D.length);
+  for (const midi of notes) {
+    const f = midiHz(midi);
+    for (let k = 1; k <= 16; k++) {
+      const fk = harmHz(f, k);
+      if (fk > MAX_HZ) break;
+      const bin = fk / binHz;
+      const w = Math.max(0.5, bin * 0.012) + 1.5;
+      for (let b = Math.max(1, Math.floor(bin - w)); b <= Math.min(D.length - 1, Math.ceil(bin + w)); b++) inside[b] = 1;
+    }
+  }
+  const top = Math.min(D.length - 1, Math.floor(MAX_HZ / binHz));
+  let all = 0;
+  let inn = 0;
+  // à partir de 100 Hz : les grondements (chocs, touches qui cognent) ne comptent pas
+  for (let b = Math.ceil(100 / binHz); b <= top; b++) {
+    const e = D[b] * D[b];
+    all += e;
+    if (inside[b]) inn += e;
+  }
+  return inn / (all + 1e-12);
+}
+
+// Une vraie note forme des pics nets (fondamentale + au moins une harmonique) ; le bruit non.
+function hasClearPeaks(D, binHz, midi) {
+  const f = midiHz(midi);
+  const contrast = (fHz) => {
+    const bin = fHz / binHz;
+    const p = peakAt(D, binHz, fHz);
+    // un vrai pic domine les creux de chaque côté (même si une autre note est juste à côté)
+    const valley = (from, to) => {
+      let m = Infinity;
+      for (let b = Math.round(from); b <= Math.round(to); b++) if (b > 0 && b < D.length && D[b] < m) m = D[b];
+      return m === Infinity ? 0 : m;
+    };
+    return p / (Math.max(valley(bin - 4, bin - 2), valley(bin + 2, bin + 4)) + 1e-9);
+  };
+  if (contrast(f) < 2) return false;
+  return contrast(harmHz(f, 2)) >= 1.6 || contrast(harmHz(f, 3)) >= 1.6;
+}
+
+// Plusieurs notes jouées ensemble (accord) : on trouve la note principale, on efface ses
+// harmoniques, puis on cherche les notes qui restent. Une note supplémentaire doit avoir
+// sa fondamentale bien présente et assez d'énergie, pour ne pas inventer de notes.
+// Renvoie un tableau de numéros MIDI (la note principale d'abord), éventuellement vide.
+export function notesFromSpectrum(D, binHz, { max = 4, minMidi = 36, maxMidi = 100 } = {}) {
+  const first = noteFromSpectrum(D, binHz, minMidi, maxMidi);
+  if (!first) return [];
+  let maxPeak = 0;
+  for (let b = 1; b < D.length; b++) if (D[b] > maxPeak) maxPeak = D[b];
+  // Accord : chaque note doit avoir sa fondamentale et des pics nets
+  const chordNotes = () =>
+    findNotesWithFundamental(D.slice(), binHz, first.score, maxPeak, max, minMidi, maxMidi).filter((m) =>
+      hasClearPeaks(D, binHz, m),
+    );
+  if (first.harmonicity <= 2) {
+    // les autres notes d'un accord tombent entre les harmoniques de la principale
+    const chord = chordNotes();
+    return chord.length >= 2 ? chord : [];
+  }
+  const R = D.slice();
+  removeHarmonics(R, binHz, first.midi);
+  const single = [first.midi, ...findNotesWithFundamental(R, binHz, first.score, maxPeak, max - 1, minMidi, maxMidi)];
+  if (peakAt(D, binHz, midiHz(first.midi)) >= 0.25 * maxPeak) return single;
+
+  // La note principale n'a pas de fondamentale : c'est peut-être la « basse virtuelle »
+  // d'un accord (Do-Mi-Sol ressemble aux harmoniques d'un Do plus grave). Si une des notes
+  // trouvées n'est pas une harmonique de cette basse, c'est bien un accord.
+  const chord = chordNotes();
+  const harmonics = [12, 19, 24, 28, 31, 34, 36].map((i) => first.midi + i);
+  if (chord.length >= 2 && chord.some((m) => !harmonics.includes(m))) return chord;
+  return single;
 }
 
 // Transforme une suite de trames audio en événements « note jouée ».
@@ -178,7 +302,8 @@ export class NoteTracker {
     this.frame = 0;
   }
 
-  // `buf` : les derniers échantillons (4096 conseillés). Renvoie un numéro MIDI ou null.
+  // `buf` : les derniers échantillons (4096 conseillés).
+  // Renvoie les notes qui viennent d'être jouées (tableau de numéros MIDI, la principale d'abord) ou null.
   process(buf, sr, now) {
     const n = buf.length >= 4096 ? 4096 : 2048;
     if (!this.fft || this.fft.n !== n) {
@@ -237,7 +362,8 @@ export class NoteTracker {
     }
 
     if (this.pending && this.frame >= this.pending.at) {
-      const { pre, before } = this.pending;
+      const pending = this.pending;
+      const { pre, before } = pending;
       this.pending = null;
       // si l'attaque est rejetée, elle ne doit pas masquer la suivante
       const reject = () => {
@@ -258,14 +384,45 @@ export class NoteTracker {
         total += mag[b];
       }
       if (added < 0.12 * total) return reject();
-      const r = noteFromSpectrum(D, binHz);
-      if (!r || r.harmonicity <= 2) return reject();
+      const found = notesFromSpectrum(D, binHz);
+      if (!found.length) return reject();
+      // Chaque note gardée doit expliquer une bonne part de l'énergie ajoutée, et l'ensemble
+      // presque toute : sinon c'est un bruit (claquement de mains, objet qui tombe, voix…).
+      const notes = [found[0]];
+      let explained = explainedEnergy(D, binHz, notes);
+      for (const m of found.slice(1)) {
+        const e = explainedEnergy(D, binHz, [...notes, m]);
+        if (e - explained >= 0.1) {
+          notes.push(m);
+          explained = e;
+        }
+      }
+      // Même note rejouée : l'ancienne sonne encore, la partie « nouvelle » est faible face au
+      // bruit de l'attaque. Un bruit imite rarement la note qu'on vient de jouer : on est plus souple.
+      const again = notes[0] === this.lastMidi;
+      if (again) {
+        const e1 = explainedEnergy(D, binHz, [notes[0]]);
+        if (e1 >= 0.6) {
+          notes.length = 1;
+          explained = e1;
+        }
+      }
+      if (explained < (notes.length > 1 ? 0.82 : again ? 0.6 : 0.78)) {
+        // Note qui démarre après un silence : la fenêtre contient encore le silence, les pics
+        // sont flous. On regarde à nouveau 50 ms plus tard plutôt que de rejeter.
+        if (!pending.retried && rise > 4) {
+          this.pending = { ...pending, at: this.frame + 2, retried: true };
+          return null;
+        }
+        return reject(); // accords : plus exigeant
+      }
+      const r = { midi: notes[0] };
       // l'écho d'une attaque ne doit pas compter comme une deuxième note
       // même note rejouée : il faut que le volume remonte vraiment
       if (r.midi === this.lastMidi && (now - this.lastEmit < 260 || rise < 1.1)) return reject();
       this.lastMidi = r.midi;
       this.lastEmit = now;
-      return r.midi;
+      return notes;
     }
     return null;
   }

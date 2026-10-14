@@ -135,6 +135,7 @@ export default function intro(shell, mission, finish) {
     );
   }
 
+  shell.expect = (m) => !!tryState && (tryState.any || pc(m) === tryState.seq[tryState.pos]);
   shell.handler = (m) => {
     if (!tryState) return;
     const t = tryState;

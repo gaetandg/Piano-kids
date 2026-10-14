@@ -9,9 +9,9 @@
   import { noteName } from '../js/music.js';
   window.__notes = [];
   document.getElementById('go').onclick = async () => {
-    await mic.subscribe((m) => {
-      window.__notes.push({ m, t: Math.round(performance.now()) });
-      document.getElementById('log').textContent += noteName(m) + ' ';
+    await mic.subscribe((notes) => {
+      window.__notes.push({ m: notes[0], notes, t: Math.round(performance.now()) });
+      document.getElementById('log').textContent += notes.map((m) => noteName(m)).join('+') + ' ';
     });
   };
 </script>

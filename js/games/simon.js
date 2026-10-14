@@ -73,6 +73,7 @@ export default function simon(shell, mission, finish) {
     playSeq();
   }
 
+  shell.expect = (m) => listening && pc(m) === pc(seq[pos]);
   shell.handler = async (m) => {
     if (!listening || !alive) return;
     if (pc(m) === pc(seq[pos])) {

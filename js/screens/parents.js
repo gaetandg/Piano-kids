@@ -103,10 +103,11 @@ export function parentsScreen(app) {
     '🎯 Régler l’octave',
   );
 
-  function onHeard(m) {
-    heard.textContent = noteName(m);
-    heard.style.color = noteColor(m);
-    if (micKb) micKb.showPlayed(m);
+  function onHeard(notes) {
+    const list = notes.slice().sort((a, b) => a - b);
+    heard.textContent = list.map((m) => noteName(m)).join(' + ');
+    heard.style.color = list.length > 1 ? '#fff' : noteColor(list[0]);
+    if (micKb) list.forEach((m) => micKb.showPlayed(m));
   }
 
   let unsub = null;

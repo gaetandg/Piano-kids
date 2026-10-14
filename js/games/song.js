@@ -71,6 +71,7 @@ export default function songGame(shell, mission, finish) {
     if (idx < notes.length && shell.keyboard) shell.keyboard.setTargets([notes[idx].midi], { label: true });
   }
 
+  shell.expect = (m) => idx < notes.length && pc(m) === pc(notes[idx].midi);
   shell.handler = (m) => {
     if (!alive || demoing || idx >= notes.length) return;
     const target = notes[idx];

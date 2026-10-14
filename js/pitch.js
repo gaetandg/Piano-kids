@@ -76,12 +76,17 @@ class Mic {
       return;
     }
     if (now < (this.mutedUntil || 0)) return;
-    const midi = this.tracker.process(this.buf, getCtx().sampleRate, now);
+    const found = this.tracker.process(this.buf, getCtx().sampleRate, now);
     this.levelListeners.forEach((fn) => fn(this.tracker.level, false));
-    if (midi != null) this.listeners.forEach((fn) => fn(midi - this.octaveShift));
+    if (found) {
+      // plusieurs notes si on joue un accord (la principale d'abord)
+      const notes = found.map((m) => m - this.octaveShift);
+      this.listeners.forEach((fn) => fn(notes));
+    }
   }
 
-  // S'abonne aux notes détectées. Renvoie une fonction de désabonnement.
+  // S'abonne aux notes détectées : fn(notes) avec un tableau de numéros MIDI.
+  // Renvoie une fonction de désabonnement.
   async subscribe(fn) {
     this.listeners.add(fn);
     await this.start();

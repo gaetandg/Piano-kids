@@ -38,8 +38,8 @@ function track(signal) {
   const events = [];
   for (let pos = 0; pos + TFRAME <= signal.length; pos += HOP) {
     const now = ((pos + TFRAME) / SR) * 1000;
-    const m = tr.process(signal.subarray(pos, pos + TFRAME), SR, now);
-    if (m != null) events.push({ midi: m, t: Math.round(now) });
+    const ns = tr.process(signal.subarray(pos, pos + TFRAME), SR, now);
+    if (ns) events.push({ midi: ns[0], notes: ns, t: Math.round(now) });
   }
   return events;
 }
@@ -191,6 +191,40 @@ for (const mel of melodies) {
 check('jeu legato : au moins 95 % de notes justes', ok / total >= 0.95, `(${ok}/${total})`);
 check('jeu legato : aucune erreur d’octave', octave === 0, `(${octave})`);
 check('jeu legato : pas de notes en trop', extra <= 2, `(${extra})`);
+
+// 8. Accords de deux notes (tierces, quintes, sixtes) : au moins 70 % reconnus en entier
+let chordOk = 0;
+let chordN = 0;
+let chordExtra = 0;
+for (const iv of [4, 7, 9]) {
+  for (const root of [48, 55, 60, 62, 65, 67, 72]) {
+    const notes = [root, root + iv];
+    const sig = renderNotes(notes.map((m) => ({ midi: m, t: 0.3, dur: 0.8 })));
+    const ev = track(sig);
+    const got = ev.length ? ev[0].notes : [];
+    chordN++;
+    if (got.length === 2 && notes.every((m) => got.includes(m))) chordOk++;
+    chordExtra += got.filter((m) => !notes.includes(m)).length;
+  }
+}
+check('accords de deux notes reconnus', chordOk / chordN >= 0.7, `(${chordOk}/${chordN})`);
+check('accords : peu de notes inventées', chordExtra <= 3, `(${chordExtra})`);
+
+// 9. Bruits forts (claquements de mains, chocs, souffle) : presque aucune note inventée
+seed = 11;
+let phantoms = 0;
+for (let r = 0; r < 20; r++) {
+  const sig = new Float32Array(SR * 6);
+  let y = 0;
+  for (let i = 0; i < sig.length; i++) {
+    y = 0.97 * y + (rnd() * 2 - 1) * 0.05;
+    const f = Math.floor(i / 1200);
+    sig[i] =
+      (rnd() * 2 - 1) * (f % 40 < 2 ? 0.5 : 0.015) + (r % 2 ? y * (f > 100 ? 1 : 0.1) : 0) + (rnd() < 0.0004 ? rnd() * 2 - 1 : 0);
+  }
+  phantoms += track(sig).length;
+}
+check('bruits forts : au plus 3 notes inventées', phantoms <= 3, `(${phantoms} pour ${20 * 5} claquements)`);
 
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est OK');
 process.exit(fails ? 1 : 0);

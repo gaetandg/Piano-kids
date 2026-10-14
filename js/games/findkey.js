@@ -84,6 +84,7 @@ export default function findkey(shell, mission, finish) {
     shell.keyboard.setTargets(shell.keyboard.midis().filter(matches));
   }
 
+  shell.expect = (m) => (fa ? pc(m) === fa.pc && !found.has(m) : !!prompt && matches(m));
   shell.handler = (m) => {
     if (busy || !alive || (!fa && !prompt)) return;
     if (fa) {

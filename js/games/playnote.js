@@ -58,6 +58,7 @@ export default function playnote(shell, mission, finish) {
     hintTimer = setTimeout(() => alive && !busy && hint(), 7000);
   }
 
+  shell.expect = (m) => target != null && pc(m) === pc(target);
   shell.handler = (m) => {
     if (busy || !alive) return;
     if (pc(m) === pc(target)) {
