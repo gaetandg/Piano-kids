@@ -8,6 +8,7 @@ const DEFAULT = {
   settings: {
     piano: '37C',
     micSensitivity: 0.5,
+    octaveShift: 0,
     voice: true,
     volume: 0.8,
     unlockAll: false,

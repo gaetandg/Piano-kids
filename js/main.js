@@ -17,7 +17,10 @@ import { parentsScreen, stickerGuideScreen } from './screens/parents.js';
 const s = state.settings();
 setVolume(s.volume);
 setVoiceEnabled(s.voice);
-if (mic) mic.setSensitivity(s.micSensitivity);
+if (mic) {
+  mic.setSensitivity(s.micSensitivity);
+  mic.setOctaveShift(s.octaveShift);
+}
 
 starfield();
 init(document.getElementById('app'));

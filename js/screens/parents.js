@@ -32,6 +32,7 @@ export function parentsScreen(app) {
       onchange: (e) => {
         state.setSetting('piano', e.target.value);
         renderKb();
+        renderMicKb();
       },
     },
     PIANO_PRESETS.map((p) => h('option', { value: p.id, selected: p.id === s.piano }, p.label)),
@@ -71,18 +72,85 @@ export function parentsScreen(app) {
       mic.setSensitivity(v);
     },
   });
+  // clavier qui montre la touche entendue : elle doit être celle que vous avez jouée
+  const micKbBox = h('div', { class: 'kb-wrap small display-only' });
+  let micKb = null;
+  const renderMicKb = () => {
+    const pr = pianoPreset(state.settings().piano);
+    micKb = new Keyboard({ from: pr.from, to: pr.to, interactive: false, names: 'c' });
+    micKbBox.innerHTML = '';
+    micKbBox.append(micKb.el);
+  };
+  renderMicKb();
+
+  // Réglage de l'octave : on joue le Do du milieu, l'app mesure le décalage éventuel
+  const shiftInfo = h('p', { class: 'small-help' });
+  const calibMsg = h('div', { class: 'calib-msg' });
+  let calibrating = false;
+  let calibHits = [];
+  const describeShift = (sh) =>
+    !sh
+      ? 'Réglage de l’octave : aucun décalage.'
+      : `Réglage de l’octave : votre piano sonne ${Math.abs(sh) === 12 ? 'une octave' : Math.abs(sh) / 12 + ' octaves'} plus ${sh < 0 ? 'grave' : 'aigu'} que prévu (corrigé).`;
+  const renderShift = () => (shiftInfo.textContent = describeShift(state.settings().octaveShift));
+  renderShift();
+  const calibBtn = h(
+    'button',
+    {
+      class: 'btn ghost',
+      onclick: async () => {
+        if (!unsub) await toggleTest();
+        if (!unsub) return;
+        calibrating = true;
+        calibHits = [];
+        micKb.setTargets([60], { label: true });
+        calibMsg.textContent = '🎯 Jouez le Do qui clignote sur le dessin (le Do du milieu), deux fois.';
+      },
+    },
+    '🎯 Régler l’octave',
+  );
+
+  function onHeard(m) {
+    heard.textContent = noteName(m);
+    heard.style.color = noteColor(m);
+    if (micKb) micKb.showPlayed(m);
+    if (!calibrating) return;
+    const raw = m + mic.octaveShift; // ce que le piano fait vraiment entendre
+    if (pc(raw) !== 0) {
+      calibHits = [];
+      calibMsg.textContent = `J’ai entendu un ${noteName(raw)}. Jouez le Do qui clignote (juste à gauche de 2 touches noires).`;
+      return;
+    }
+    calibHits.push(raw);
+    if (calibHits.length < 2) {
+      calibMsg.textContent = 'Un Do, très bien ! Encore une fois…';
+      return;
+    }
+    const [a, b] = calibHits.slice(-2);
+    if (a !== b) {
+      calibHits = [b];
+      calibMsg.textContent = 'Les deux Do ne se ressemblaient pas, encore une fois…';
+      return;
+    }
+    const shift = Math.round((b - 60) / 12) * 12;
+    state.setSetting('octaveShift', shift);
+    mic.setOctaveShift(shift);
+    calibrating = false;
+    micKb.setTargets([]);
+    calibMsg.textContent =
+      shift === 0 ? '✅ Parfait : votre piano est bien reconnu, rien à corriger.' : '✅ ' + describeShift(shift);
+    renderShift();
+  }
+
   let unsub = null;
   let unLevel = null;
-  const testBtn = h('button', { class: 'btn ghost', onclick: toggleTest }, '🎤 Tester le micro');
+  const testBtn = h('button', { class: 'btn ghost', onclick: () => toggleTest() }, '🎤 Tester le micro');
   async function toggleTest() {
     if (unsub) return stopTest();
     if (!micSupported()) return toast('Micro non disponible dans ce navigateur.');
     try {
       await unlockAudio();
-      unsub = await mic.subscribe((m) => {
-        heard.textContent = noteName(m);
-        heard.style.color = noteColor(m);
-      });
+      unsub = await mic.subscribe(onHeard);
       unLevel = mic.onLevel((l) => {
         level.firstChild.style.width = Math.min(100, l * 2500) + '%';
       });
@@ -96,6 +164,8 @@ export function parentsScreen(app) {
     if (unsub) unsub();
     if (unLevel) unLevel();
     unsub = unLevel = null;
+    calibrating = false;
+    if (micKb) micKb.setTargets([]);
     testBtn.textContent = '🎤 Tester le micro';
   }
   page.append(
@@ -104,11 +174,19 @@ export function parentsScreen(app) {
       h(
         'p',
         {},
-        'L’app écoute le piano grâce au micro du téléphone. Posez le téléphone sur le pupitre, le piano à volume moyen. Jouez une note : son nom doit s’afficher.',
+        'L’app écoute le piano grâce au micro du téléphone. Posez le téléphone sur le pupitre, le piano à volume moyen. Jouez une note : son nom s’affiche et la touche s’allume sur le dessin.',
       ),
-      testBtn,
+      h('div', { class: 'row' }, testBtn, calibBtn),
       level,
       heard,
+      micKbBox,
+      calibMsg,
+      shiftInfo,
+      h(
+        'p',
+        { class: 'small-help' },
+        'Si la touche allumée est la bonne mais une octave trop à gauche ou à droite, appuyez sur « Régler l’octave ».',
+      ),
       h('label', { class: 'field' }, h('span', {}, 'Sensibilité'), slider),
       h(
         'p',

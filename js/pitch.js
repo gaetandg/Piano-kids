@@ -1,5 +1,4 @@
 // Micro : écoute du piano dans le navigateur.
-// ---------- Micro (navigateur) ----------
 
 import { getCtx, unlockAudio, isBusy } from './audio.js';
 import { isSpeaking } from './speech.js';
@@ -13,6 +12,12 @@ class Mic {
     this.running = false;
     this.stopTimer = null;
     this.sensitivity = 0.5;
+    this.octaveShift = 0; // certains claviers sonnent une octave plus haut ou plus bas
+  }
+
+  // Décalage (en demi-tons, multiple de 12) entre ce que le piano fait entendre et ses touches.
+  setOctaveShift(semitones) {
+    this.octaveShift = semitones || 0;
   }
 
   setSensitivity(s) {
@@ -36,7 +41,7 @@ class Mic {
       });
       this.src = ctx.createMediaStreamSource(this.stream);
       this.analyser = ctx.createAnalyser();
-      this.analyser.fftSize = 2048;
+      this.analyser.fftSize = 4096;
       this.buf = new Float32Array(this.analyser.fftSize);
       this.src.connect(this.analyser);
       this.tracker.reset();
@@ -73,7 +78,7 @@ class Mic {
     if (now < (this.mutedUntil || 0)) return;
     const midi = this.tracker.process(this.buf, getCtx().sampleRate, now);
     this.levelListeners.forEach((fn) => fn(this.tracker.level, false));
-    if (midi != null) this.listeners.forEach((fn) => fn(midi));
+    if (midi != null) this.listeners.forEach((fn) => fn(midi - this.octaveShift));
   }
 
   // S'abonne aux notes détectées. Renvoie une fonction de désabonnement.

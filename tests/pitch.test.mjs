@@ -3,7 +3,8 @@
 import { detectPitch, NoteTracker } from '../js/pitchcore.js';
 
 const SR = 48000;
-const FRAME = 2048;
+const FRAME = 2048; // fenêtre de l'analyse de hauteur seule
+const TFRAME = 4096; // fenêtre utilisée par le micro de l'app
 const HOP = Math.round(SR * 0.025); // une analyse toutes les 25 ms (comme dans l'app)
 
 const freq = (m) => 440 * Math.pow(2, (m - 69) / 12);
@@ -35,9 +36,9 @@ function renderNotes(notes, { noise = 0.003, fundamental = 1 } = {}) {
 function track(signal) {
   const tr = new NoteTracker({ gate: 0.01 });
   const events = [];
-  for (let pos = 0; pos + FRAME <= signal.length; pos += HOP) {
-    const now = ((pos + FRAME) / SR) * 1000;
-    const m = tr.process(signal.subarray(pos, pos + FRAME), SR, now);
+  for (let pos = 0; pos + TFRAME <= signal.length; pos += HOP) {
+    const now = ((pos + TFRAME) / SR) * 1000;
+    const m = tr.process(signal.subarray(pos, pos + TFRAME), SR, now);
     if (m != null) events.push({ midi: m, t: Math.round(now) });
   }
   return events;
@@ -111,6 +112,85 @@ check('note tenue = un seul événement', ev4.length === 1 && ev4[0].midi === 67
 const ends = [48, 84, 50, 81];
 const ev5 = track(renderNotes(ends.map((m, i) => ({ midi: m, t: 0.2 + i * 0.6, dur: 0.5 }))));
 check('extrémités du clavier', ev5.map((e) => e.midi).join() === ends.join(), JSON.stringify(ev5.map((e) => e.midi)));
+
+// 7. Jeu « legato » réaliste : la note précédente sonne encore (avec écho, sons
+//    légèrement désaccordés). C'est là que l'ancienne détection se trompait d'octave.
+let seed = 3;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+function renderLegato(notes, { hold = 1.0, gap = 0.5, detune = 4, reverb = 0.5, noise = 0.004, fund = 0.6 } = {}) {
+  const out = new Float32Array(Math.ceil((notes.length * gap + hold + 1) * SR));
+  notes.forEach((m, j) => {
+    const start = Math.floor((0.3 + j * gap) * SR);
+    const len = Math.floor((hold + 0.4) * SR);
+    for (const dc of [-detune, detune]) {
+      const f = freq(m) * Math.pow(2, dc / 1200);
+      [fund, 0.6, 0.4, 0.25, 0.15, 0.1].forEach((a, k) => {
+        const fn = f * (k + 1) * Math.sqrt(1 + 0.0005 * (k + 1) ** 2);
+        const ph = rnd() * 6.28;
+        for (let i = 0; i < len && start + i < out.length; i++) {
+          const t = i / SR;
+          const env = Math.min(1, t / 0.004) * Math.exp(-t * (1.2 + k)) * (t > hold ? Math.exp(-(t - hold) / 0.08) : 1);
+          out[start + i] += 0.12 * a * env * Math.sin(2 * Math.PI * fn * t + ph);
+        }
+      });
+    }
+  });
+  if (reverb)
+    for (const [d, g] of [
+      [0.023, 0.5],
+      [0.037, 0.35],
+      [0.051, 0.25],
+      [0.079, 0.15],
+    ]) {
+      const D = Math.floor(d * SR);
+      for (let i = out.length - 1; i >= D; i--) out[i] += reverb * g * out[i - D];
+    }
+  for (let i = 0; i < out.length; i++) out[i] += (rnd() * 2 - 1) * noise;
+  return out;
+}
+const melodies = [
+  [60, 62, 64, 65, 67, 65, 64, 62, 60],
+  [61, 63, 66, 68, 70, 73, 75, 78, 80, 82],
+  [60, 64, 62, 65, 64, 67, 65, 69, 67, 71, 69, 72],
+  [48, 60, 72, 84, 55, 67, 79, 50, 74],
+  [48, 50, 52, 53, 55, 57, 59, 49, 51, 54],
+  [60, 60, 60, 62, 64, 62, 60, 64, 62, 62, 60],
+];
+let ok = 0;
+let total = 0;
+let octave = 0;
+let extra = 0;
+for (const mel of melodies) {
+  for (const opt of [{}, { gap: 0.35, hold: 1.2 }, { fund: 0.2, reverb: 0.8 }]) {
+    const ev = track(renderLegato(mel, opt)).map((e) => e.midi);
+    // alignement (distance d'édition) entre notes attendues et détectées
+    const n = mel.length;
+    const m = ev.length;
+    const D = Array.from({ length: n + 1 }, (_, i) => Array.from({ length: m + 1 }, (_, j) => (i ? (j ? 0 : i) : j)));
+    for (let i = 1; i <= n; i++)
+      for (let j = 1; j <= m; j++)
+        D[i][j] = Math.min(D[i - 1][j - 1] + (mel[i - 1] === ev[j - 1] ? 0 : 1), D[i - 1][j] + 1, D[i][j - 1] + 1);
+    let i = n;
+    let j = m;
+    while (i > 0 && j > 0) {
+      if (D[i][j] === D[i - 1][j - 1] + (mel[i - 1] === ev[j - 1] ? 0 : 1)) {
+        if (mel[i - 1] === ev[j - 1]) ok++;
+        else if ((ev[j - 1] - mel[i - 1]) % 12 === 0) octave++;
+        i--;
+        j--;
+      } else if (D[i][j] === D[i - 1][j] + 1) i--;
+      else {
+        extra++;
+        j--;
+      }
+    }
+    extra += j;
+    total += n;
+  }
+}
+check('jeu legato : au moins 95 % de notes justes', ok / total >= 0.95, `(${ok}/${total})`);
+check('jeu legato : aucune erreur d’octave', octave === 0, `(${octave})`);
+check('jeu legato : pas de notes en trop', extra <= 2, `(${extra})`);
 
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est OK');
 process.exit(fails ? 1 : 0);

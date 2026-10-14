@@ -2112,3 +2112,13 @@ h3 {
     padding: 6px 12px;
   }
 }
+
+.calib-msg {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 8px 0;
+  min-height: 0;
+}
+.calib-msg:empty {
+  display: none;
+}
