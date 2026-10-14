@@ -4,7 +4,6 @@ import * as state from './state.js';
 import { init, register, start } from './router.js';
 import { setVolume, unlockAudio } from './audio.js';
 import { setVoiceEnabled } from './speech.js';
-import { mic } from './pitch.js';
 import { VERSION } from './version.js';
 
 import { profilesScreen, editProfileScreen } from './screens/profiles.js';
@@ -13,15 +12,12 @@ import { gameScreen } from './screens/game.js';
 import { freeScreen } from './screens/free.js';
 import { songsScreen, albumScreen } from './screens/library.js';
 import { parentsScreen, stickerGuideScreen } from './screens/parents.js';
-import { calibrateScreen } from './screens/calibrate.js';
+import { calibrateScreen, applyMicSettings } from './screens/calibrate.js';
 
 const s = state.settings();
 setVolume(s.volume);
 setVoiceEnabled(s.voice);
-if (mic) {
-  mic.setSensitivity(s.micSensitivity);
-  mic.setOctaveShift(s.octaveShift);
-}
+applyMicSettings();
 
 starfield();
 init(document.getElementById('app'));

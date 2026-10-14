@@ -13,6 +13,29 @@ class Mic {
     this.stopTimer = null;
     this.sensitivity = 0.5;
     this.octaveShift = 0; // certains claviers sonnent une octave plus haut ou plus bas
+    this.decisionListeners = new Set();
+    // diagnostic : ce que l'app a compris à chaque attaque (notes ramenées aux touches du clavier)
+    this.tracker.onDecision = (info) => {
+      const out = { ...info, notes: info.notes ? info.notes.map((m) => m - this.octaveShift) : null };
+      this.decisionListeners.forEach((fn) => fn(out));
+    };
+  }
+
+  // Clavier réglé : on ne cherche que les notes qu'il peut jouer (de sa touche la plus grave à la plus aiguë).
+  configure({ from, to, shift = 0, calibrated = false }) {
+    this.setOctaveShift(shift);
+    if (calibrated) this.tracker.setRange(from + shift - 1, to + shift + 1);
+    else this.tracker.setRange(28, 104);
+  }
+
+  onDecision(fn) {
+    this.decisionListeners.add(fn);
+    return () => this.decisionListeners.delete(fn);
+  }
+
+  // Réglage du curseur de sensibilité qui donne ce seuil de volume.
+  static sensitivityForGate(gate) {
+    return Math.max(0, Math.min(1, Math.log(gate / 0.03) / Math.log(0.067)));
   }
 
   // Décalage (en demi-tons, multiple de 12) entre ce que le piano fait entendre et ses touches.
@@ -112,4 +135,5 @@ class Mic {
 }
 
 export const mic = typeof window !== 'undefined' ? new Mic() : null;
+export const sensitivityForGate = (g) => Mic.sensitivityForGate(g);
 export const micSupported = () => typeof window !== 'undefined' && Mic.supported();

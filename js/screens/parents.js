@@ -8,6 +8,7 @@ import { mic, micSupported } from '../pitch.js';
 import { setVolume, playNote, unlockAudio } from '../audio.js';
 import { setVoiceEnabled, say } from '../speech.js';
 import { VERSION } from '../version.js';
+import { applyMicSettings } from './calibrate.js';
 
 let gatePassed = false;
 
@@ -33,6 +34,7 @@ export function parentsScreen(app) {
         state.setSetting('piano', e.target.value);
         renderKb();
         renderMicKb();
+        applyMicSettings();
       },
     },
     PIANO_PRESETS.map((p) => h('option', { value: p.id, selected: p.id === s.piano }, p.label)),
@@ -85,12 +87,21 @@ export function parentsScreen(app) {
 
   // Réglage de l'octave (écran dédié : on joue la dernière touche blanche)
   const shiftInfo = h('p', { class: 'small-help' });
-  const sh = state.settings().octaveShift;
-  shiftInfo.textContent = !state.settings().octaveCalibrated
-    ? 'Octave : pas encore réglée.'
-    : !sh
-      ? 'Octave : réglée, aucun décalage.'
-      : `Octave : réglée, ce piano sonne ${Math.abs(sh) === 12 ? 'une octave' : Math.abs(sh) / 12 + ' octaves'} plus ${sh < 0 ? 'grave' : 'aigu'} que prévu (corrigé).`;
+  const st = state.settings();
+  const sh = st.octaveShift;
+  const bassText =
+    {
+      ok: ' Les notes graves sont bien entendues.',
+      octave: ' Attention : la touche de gauche a été entendue une octave trop haut (graves difficiles pour le micro).',
+      other: ' Attention : la touche de gauche n’a pas été reconnue correctement.',
+      skipped: ' La touche de gauche a été passée (graves difficiles à entendre).',
+    }[st.bassCheck] || '';
+  shiftInfo.textContent = !st.octaveCalibrated
+    ? 'Réglage : pas encore fait.'
+    : (!sh
+        ? 'Réglage fait : aucun décalage d’octave.'
+        : `Réglage fait : ce piano sonne ${Math.abs(sh) === 12 ? 'une octave' : Math.abs(sh) / 12 + ' octaves'} plus ${sh < 0 ? 'grave' : 'aigu'} que prévu (corrigé).`) +
+      bassText;
   const calibBtn = h(
     'button',
     {
@@ -100,8 +111,35 @@ export function parentsScreen(app) {
         go('calibrate', {});
       },
     },
-    '🎯 Régler l’octave',
+    '🎯 Régler le micro',
   );
+
+  // Journal : ce que l'app a compris à chaque attaque (utile si des touches posent problème)
+  const diag = h('ul', { class: 'diag' });
+  const pr0 = () => pianoPreset(state.settings().piano);
+  const keyNo = (m) => m - pr0().from + 1; // numéro de la touche en partant de la gauche
+  const reasons = {
+    'trop faible': 'son trop faible pour le micro',
+    'pas de son nouveau': 'pas de nouvelle note',
+    'pas une note': 'pas reconnu comme une note',
+    bruit: 'ressemble à un bruit',
+    écho: 'écho de la note précédente',
+  };
+  function onDecision(info) {
+    const names = info.notes ? info.notes.map((m) => `${noteName(m)} (touche ${keyNo(m)})`).join(' + ') : '';
+    const line = info.ok
+      ? h('li', { class: 'ok' }, '✓ ', names)
+      : h(
+          'li',
+          { class: 'ko' },
+          '✗ ',
+          reasons[info.reason] || info.reason,
+          names ? ` — ${names} ?` : '',
+          ` · volume ${(info.level * 1000).toFixed(0)}`,
+        );
+    diag.prepend(line);
+    while (diag.children.length > 10) diag.lastChild.remove();
+  }
 
   function onHeard(notes) {
     const list = notes.slice().sort((a, b) => a - b);
@@ -112,6 +150,7 @@ export function parentsScreen(app) {
 
   let unsub = null;
   let unLevel = null;
+  let unDiag = null;
   const testBtn = h('button', { class: 'btn ghost', onclick: () => toggleTest() }, '🎤 Tester le micro');
   async function toggleTest() {
     if (unsub) return stopTest();
@@ -119,6 +158,7 @@ export function parentsScreen(app) {
     try {
       await unlockAudio();
       unsub = await mic.subscribe(onHeard);
+      unDiag = mic.onDecision(onDecision);
       unLevel = mic.onLevel((l) => {
         level.firstChild.style.width = Math.min(100, l * 2500) + '%';
       });
@@ -131,7 +171,8 @@ export function parentsScreen(app) {
   function stopTest() {
     if (unsub) unsub();
     if (unLevel) unLevel();
-    unsub = unLevel = null;
+    if (unDiag) unDiag();
+    unsub = unLevel = unDiag = null;
     testBtn.textContent = '🎤 Tester le micro';
   }
   page.append(
@@ -146,11 +187,12 @@ export function parentsScreen(app) {
       level,
       heard,
       micKbBox,
+      diag,
       shiftInfo,
       h(
         'p',
         { class: 'small-help' },
-        'Si la touche allumée est la bonne note mais une octave trop à gauche ou à droite, appuyez sur « Régler l’octave » et jouez la dernière touche blanche (tout à droite).',
+        'Si la touche allumée n’est pas celle jouée, appuyez sur « Régler le micro » : on joue la touche blanche tout à gauche puis tout à droite. La liste ci-dessus montre ce que l’app a compris à chaque touche.',
       ),
       h('label', { class: 'field' }, h('span', {}, 'Sensibilité'), slider),
       h(

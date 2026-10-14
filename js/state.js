@@ -10,6 +10,7 @@ const DEFAULT = {
     micSensitivity: 0.5,
     octaveShift: 0,
     octaveCalibrated: false,
+    bassCheck: null, // 'ok' | 'octave' | 'other' | 'skipped' : les graves au réglage
     voice: true,
     volume: 0.8,
     unlockAll: false,

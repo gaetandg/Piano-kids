@@ -289,7 +289,18 @@ export class NoteTracker {
     this.gate = gate;
     this.noiseFloor = 0.002;
     this.fft = null;
+    this.range = [36, 100]; // notes possibles (MIDI) : réduit à celles du clavier une fois réglé
+    this.onDecision = null; // diagnostic : appelé à chaque attaque avec ce qui a été décidé
     this.reset();
+  }
+
+  // Ne cherche que des notes que le clavier peut jouer (évite les erreurs d'octave aux extrémités).
+  setRange(lo, hi) {
+    this.range = [Math.max(24, lo), Math.min(108, hi)];
+  }
+
+  _report(info) {
+    if (this.onDecision) this.onDecision(info);
   }
 
   reset() {
@@ -329,6 +340,13 @@ export class NoteTracker {
     this.history.push(mag);
 
     if (rms < gate) {
+      // diagnostic : une attaque nette mais sous le seuil du micro
+      const L = this.levels;
+      const prevL = L.length >= 2 ? L[L.length - 2] : rms;
+      if (rms > 2 * prevL && rms > this.noiseFloor * 4 && rms > gate * 0.25 && now - (this._quietAt || 0) > 300) {
+        this._quietAt = now;
+        this._report({ t: now, ok: false, reason: 'trop faible', level: rms, gate });
+      }
       this.pending = null;
       return null;
     }
@@ -366,8 +384,9 @@ export class NoteTracker {
       const { pre, before } = pending;
       this.pending = null;
       // si l'attaque est rejetée, elle ne doit pas masquer la suivante
-      const reject = () => {
+      const reject = (reason, notes = null) => {
         this.lastOnset = -1e9;
+        this._report({ t: now, ok: false, reason, notes, level: rms });
         return null;
       };
       const rise = rms / (before + 1e-9);
@@ -383,9 +402,9 @@ export class NoteTracker {
         }
         total += mag[b];
       }
-      if (added < 0.12 * total) return reject();
-      const found = notesFromSpectrum(D, binHz);
-      if (!found.length) return reject();
+      if (added < 0.12 * total) return reject('pas de son nouveau');
+      const found = notesFromSpectrum(D, binHz, { minMidi: this.range[0], maxMidi: this.range[1] });
+      if (!found.length) return reject('pas une note');
       // Chaque note gardée doit expliquer une bonne part de l'énergie ajoutée, et l'ensemble
       // presque toute : sinon c'est un bruit (claquement de mains, objet qui tombe, voix…).
       const notes = [found[0]];
@@ -414,14 +433,15 @@ export class NoteTracker {
           this.pending = { ...pending, at: this.frame + 2, retried: true };
           return null;
         }
-        return reject(); // accords : plus exigeant
+        return reject('bruit', notes);
       }
       const r = { midi: notes[0] };
       // l'écho d'une attaque ne doit pas compter comme une deuxième note
       // même note rejouée : il faut que le volume remonte vraiment
-      if (r.midi === this.lastMidi && (now - this.lastEmit < 260 || rise < 1.1)) return reject();
+      if (r.midi === this.lastMidi && (now - this.lastEmit < 260 || rise < 1.1)) return reject('écho', notes);
       this.lastMidi = r.midi;
       this.lastEmit = now;
+      this._report({ t: now, ok: true, notes, level: rms });
       return notes;
     }
     return null;

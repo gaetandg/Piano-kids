@@ -1,30 +1,53 @@
-// Réglage du micro : on joue la dernière touche blanche du piano (tout à droite) et l'app
-// mesure si le clavier sonne une octave plus haut ou plus bas que prévu.
+// Réglage du micro : on joue la touche blanche tout à gauche puis tout à droite ; l'app mesure
+// si le clavier sonne une octave plus haut ou plus bas que prévu et si elle entend bien les graves.
 import { h, mascot, toast, keepAwake } from '../ui.js';
 import * as state from '../state.js';
 import { go, back } from '../router.js';
 import { Keyboard } from '../keyboard.js';
-import { mic, micSupported } from '../pitch.js';
+import { mic, micSupported, sensitivityForGate } from '../pitch.js';
 import { unlockAudio, sfxSuccess, sfxError } from '../audio.js';
 import { say } from '../speech.js';
 import { pianoPreset, noteName, pc, isBlack } from '../music.js';
 
 let skipped = false; // « Plus tard » : on ne redemande pas pendant cette visite
+const CALIB_VERSION = 2; // 2 : touche de gauche + touche de droite (graves vérifiés)
 
 // Faut-il proposer le réglage avant de jouer au vrai piano ?
 export function needsCalibration() {
-  return !skipped && micSupported() && !state.settings().octaveCalibrated;
+  const s = state.settings();
+  return !skipped && micSupported() && (!s.octaveCalibrated || (s.calibVersion || 1) < CALIB_VERSION);
 }
 
+// Applique les réglages du micro (sensibilité, octave, notes possibles du clavier).
+export function applyMicSettings() {
+  if (!mic) return;
+  const s = state.settings();
+  const p = pianoPreset(s.piano);
+  mic.setSensitivity(s.micSensitivity);
+  mic.configure({ from: p.from, to: p.to, shift: s.octaveShift, calibrated: s.octaveCalibrated });
+}
+
+const whiteAtOrAbove = (m) => (isBlack(m) ? m + 1 : m);
+const whiteAtOrBelow = (m) => (isBlack(m) ? m - 1 : m);
+
+// Réglage en deux temps : la touche blanche tout à gauche, puis celle tout à droite (deux fois chacune).
+// La touche de droite donne l'octave du clavier ; celle de gauche vérifie que les graves sont bien
+// entendus (et rend le micro plus sensible s'ils sont faibles).
 // `params.next` = {name, params} : l'écran où aller ensuite (sinon : retour).
 export function calibrateScreen(app, params) {
   const piano = pianoPreset(state.settings().piano);
-  let target = piano.to;
-  while (isBlack(target)) target--;
+  const left = whiteAtOrAbove(piano.from);
+  const right = whiteAtOrBelow(piano.to);
   const next = params.next || null;
+  let phase = 'left';
+  let target = left;
   let hits = [];
+  let misses = 0;
+  let leftResult = null; // {raw, level} ou null si l'étape est passée
+  let quietLevels = [];
   let unsub = null;
   let unLevel = null;
+  let unDecision = null;
   let done = false;
 
   const continueTo = () => {
@@ -35,17 +58,49 @@ export function calibrateScreen(app, params) {
   const m = mascot('happy', 'small');
   const bubble = h('div', { class: 'bubble' });
   const status = h('div', { class: 'calib-msg' });
+  const steps = h('div', { class: 'calib-steps' });
   const micDot = h('span', { class: 'mic-dot' }, '🎤');
   const kbBox = h('div', { class: 'kb-wrap calib display-only' });
   const kb = new Keyboard({ from: piano.from, to: piano.to, interactive: false, names: 'c' });
-  kb.setTargets([target], { label: true });
   kbBox.append(kb.el);
+  const skipBtn = h('button', { class: 'btn ghost small', hidden: true, onclick: () => skipLeft() }, 'Passer cette touche');
 
   const talk = (text, mood = 'happy') => {
     bubble.textContent = text;
     m.setMood(mood);
     return say(text);
   };
+
+  function renderSteps() {
+    steps.innerHTML = '';
+    steps.append(
+      h(
+        'span',
+        { class: 'calib-step' + (phase === 'left' ? ' on' : ' ok') },
+        phase === 'left' ? '① Touche de gauche' : '✓ Touche de gauche',
+      ),
+      h('span', { class: 'calib-step' + (phase === 'right' ? ' on' : '') }, '② Touche de droite'),
+    );
+  }
+
+  function showPhase() {
+    hits = [];
+    misses = 0;
+    kb.setTargets([target], { label: true });
+    renderSteps();
+    status.textContent = '';
+    if (phase === 'left') {
+      talk(
+        'Avant de jouer, j’apprends à reconnaître ton piano. Joue la touche qui clignote : la touche blanche tout à gauche. Deux fois !',
+      );
+      setTimeout(() => {
+        if (!done && phase === 'left') skipBtn.hidden = false;
+      }, 15000);
+    } else {
+      skipBtn.hidden = true;
+      talk('Bravo ! Maintenant la touche blanche tout à droite. Deux fois aussi !');
+    }
+  }
 
   async function start() {
     if (!micSupported()) {
@@ -54,8 +109,11 @@ export function calibrateScreen(app, params) {
     }
     try {
       await unlockAudio();
+      // pendant le réglage, on écoute toutes les notes possibles (l'ancien réglage ne doit pas gêner)
+      mic.configure({ shift: 0, calibrated: false });
       unsub = await mic.subscribe(onNote);
       unLevel = mic.onLevel((lvl, muted) => micDot.style.setProperty('--lvl', muted ? 0 : Math.min(1, lvl * 25)));
+      unDecision = mic.onDecision(onDecision);
     } catch (e) {
       talk('Je n’ai pas accès au micro. Demande à un adulte de l’autoriser, ou joue sur l’écran.', 'oops');
     }
@@ -64,17 +122,45 @@ export function calibrateScreen(app, params) {
   function stop() {
     if (unsub) unsub();
     if (unLevel) unLevel();
-    unsub = unLevel = null;
+    if (unDecision) unDecision();
+    unsub = unLevel = unDecision = null;
+    if (!done) applyMicSettings(); // abandon : on remet les réglages d'avant
+  }
+
+  // Attaques entendues mais trop faibles : on rend le micro plus sensible
+  function onDecision(info) {
+    if (done || info.ok || info.reason !== 'trop faible') return;
+    quietLevels.push(info.level);
+    const g = Math.max(0.0015, info.level * 0.6);
+    if (g < mic.tracker.gate) {
+      mic.tracker.gate = g;
+      status.textContent = 'Je t’entends à peine… Joue un peu plus fort, ou rapproche le téléphone.';
+    }
+  }
+
+  function skipLeft() {
+    leftResult = null;
+    phase = 'right';
+    target = right;
+    showPhase();
   }
 
   function onNote(notes) {
     if (done) return;
-    const heard = notes.find((m) => pc(m) === pc(target)) ?? notes[0];
-    const raw = heard + mic.octaveShift; // ce que le piano fait vraiment entendre
+    const raw = notes.find((x) => pc(x) === pc(target)) ?? notes[0]; // réglage remis à zéro : son réel
     if (pc(raw) !== pc(target)) {
       hits = [];
+      misses++;
       sfxError();
-      status.textContent = `J’ai entendu un ${noteName(raw)}. Joue la dernière touche blanche, tout à droite de ton piano.`;
+      const where = phase === 'left' ? 'tout à gauche' : 'tout à droite';
+      status.textContent = `J’ai entendu un ${noteName(raw)}. Joue la touche blanche ${where} de ton piano.`;
+      if (phase === 'left' && misses >= 2) skipBtn.hidden = false;
+      return;
+    }
+    // les deux touches du bout sont souvent des Do : la touche de droite doit être bien plus aiguë
+    if (phase === 'right' && leftResult && raw - leftResult.raw < right - left - 12) {
+      hits = [];
+      status.textContent = 'Ça, c’est la touche de gauche ! Joue maintenant la touche blanche tout à droite.';
       return;
     }
     hits.push(raw);
@@ -83,12 +169,39 @@ export function calibrateScreen(app, params) {
       status.textContent = 'Super ! Encore une fois la même touche…';
       return;
     }
+    sfxSuccess();
+    if (phase === 'left') {
+      leftResult = { raw, level: mic.tracker.level };
+      phase = 'right';
+      target = right;
+      showPhase();
+      return;
+    }
+    finish(raw, mic.tracker.level);
+  }
+
+  function finish(rawRight, rightLevel) {
     done = true;
-    const shift = Math.round((raw - target) / 12) * 12;
+    const shift = Math.round((rawRight - right) / 12) * 12;
+    // les graves sont-ils entendus à la bonne octave ?
+    let bass = 'skipped';
+    if (leftResult) {
+      const gap = rawRight - leftResult.raw; // écart attendu : right - left
+      bass = gap === right - left ? 'ok' : gap === right - left - 12 ? 'octave' : 'other';
+    }
     state.setSetting('octaveShift', shift);
     state.setSetting('octaveCalibrated', true);
-    mic.setOctaveShift(shift);
-    sfxSuccess();
+    state.setSetting('bassCheck', bass);
+    state.setSetting('calibVersion', CALIB_VERSION);
+    // micro assez sensible pour la touche la plus faible jouée pendant le réglage
+    const levels = [rightLevel, leftResult && leftResult.level, ...quietLevels].filter((x) => x > 0);
+    if (levels.length) {
+      const wanted = Math.min(...levels) * 0.45;
+      const s = state.settings();
+      if (0.03 * Math.pow(0.067, s.micSensitivity) > wanted) state.setSetting('micSensitivity', sensitivityForGate(wanted));
+    }
+    applyMicSettings();
+    kb.setTargets([]);
     status.textContent = '';
     m.bounce();
     talk('Merci ! Maintenant je connais bien ton piano. 🎹', 'excited');
@@ -108,8 +221,10 @@ export function calibrateScreen(app, params) {
         micDot,
       ),
       h('div', { class: 'talk inline' }, m, bubble),
+      steps,
       kbBox,
       status,
+      h('div', { class: 'row center' }, skipBtn),
       h(
         'div',
         { class: 'row center' },
@@ -143,9 +258,7 @@ export function calibrateScreen(app, params) {
       ),
     ),
   );
-  talk(
-    'Avant de jouer, j’apprends à reconnaître ton piano. Joue la touche qui clignote : la dernière touche blanche, tout à droite. Deux fois !',
-  );
+  showPhase();
   keepAwake();
   start();
   return { destroy: stop };

@@ -2158,3 +2158,43 @@ h3 {
 .calibrate-page .calib-msg {
   text-align: center;
 }
+
+.calib-steps {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 6px 0;
+}
+.calib-step {
+  background: var(--panel);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.calib-step.on {
+  background: var(--yellow);
+  color: var(--ink);
+}
+.calib-step.ok {
+  background: rgba(46, 213, 115, 0.3);
+  color: #fff;
+}
+.diag {
+  font-size: 14px;
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.diag li {
+  padding: 3px 0;
+  border-bottom: 1px solid var(--line);
+}
+.diag .ok {
+  color: var(--green);
+}
+.diag .ko {
+  color: #ffb3b3;
+}
