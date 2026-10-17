@@ -120,3 +120,5 @@ export function pick(arr) {
 
 // Numéros de doigts de la main droite en position de Do.
 export const FINGERS_C = { 60: 1, 62: 2, 64: 3, 65: 4, 67: 5 };
+// Main gauche en position de Do grave : petit doigt (5) sur Do, pouce (1) sur Sol.
+export const FINGERS_LEFT = { 48: 5, 50: 4, 52: 3, 53: 2, 55: 1 };

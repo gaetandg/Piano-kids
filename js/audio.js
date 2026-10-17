@@ -94,6 +94,7 @@ function bar(c, out, midi, t, vel, short) {
     [3.93, 0.25, 0.12 * k],
     [9.2, 0.08, 0.05 * k],
   ].forEach(([ratio, amp, tau]) => {
+    if (f * ratio > c.sampleRate * 0.45) return; // trop aigu pour être joué
     const o = c.createOscillator();
     o.frequency.value = f * ratio;
     const g = c.createGain();

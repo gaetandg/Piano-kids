@@ -1,8 +1,10 @@
 // Jouer une chanson : les notes défilent, l'app attend la bonne note.
+// Options de mission : display ('staff' = lire sur une portée), colors (couleurs sur la portée).
 import { h, wait } from '../ui.js';
 import { playNote, sfxError } from '../audio.js';
 import { pc, noteName, noteColor, noteTextColor } from '../music.js';
 import { getSong } from '../songs.js';
+import { staffTrack, staffClefSVG } from '../staff.js';
 import { starsFromMistakes } from './shell.js';
 
 export const config = (m) => {
@@ -23,8 +25,14 @@ export default function songGame(shell, mission, finish) {
   let alive = true;
   let demoing = false;
   let demoTimers = [];
+  const staff = mission.display === 'staff';
+  const twoHands = song.hands !== 'right';
+  // à deux mains, l'octave compte (c'est elle qui dit quelle main joue)
+  const exact = (twoHands || !!mission.exact) && shell.octaveStrict();
+  const matches = (m, t) => (exact ? m === t.midi : pc(m) === pc(t.midi));
+  let hintHere = !staff; // sur une portée, la touche ne s'allume qu'après une erreur
 
-  const lane = h('div', { class: 'lane' });
+  const lane = h('div', { class: staff ? 'lane staff-lane' : 'lane' });
   const track = h('div', { class: 'lane-track' });
   lane.append(track, h('div', { class: 'lane-cursor' }));
   const listenBtn = h('button', { class: 'btn sound', onclick: () => (demoing ? stopDemo() : demo()) }, '🔊 Écouter');
@@ -33,52 +41,82 @@ export default function songGame(shell, mission, finish) {
   shell.stage.append(h('div', { class: 'song-title' }, song.emoji + ' ' + song.title), lane, controls);
   shell.dock(controls);
 
-  const bubbles = notes.map((n, i) => {
-    const b = h(
-      'div',
-      { class: 'nb' },
-      h(
-        'div',
-        { class: 'nb-note' },
-        h('span', { class: 'nb-name' }, noteName(n.midi)),
-        n.finger ? h('span', { class: 'nb-finger' }, n.finger) : null,
-      ),
-      n.lyric ? h('div', { class: 'nb-lyric' }, n.lyric) : null,
-    );
-    b.style.setProperty('--w', Math.max(48, Math.min(120, 30 + n.dur * 30)) + 'px');
-    const nn = b.firstChild;
-    nn.style.background = noteColor(n.midi);
-    nn.style.color = noteTextColor(n.midi);
-    if (n.midi < 60) b.classList.add('low');
-    track.append(b);
-    return b;
-  });
+  let staffXs = null;
+  if (staff) {
+    const st = staffTrack(notes, { colors: mission.colors !== false, gap: 11, unit: 44, lead: 70 });
+    track.innerHTML = st.svg;
+    staffXs = st.xs;
+    lane.style.height = st.height + 'px';
+    lane.insertAdjacentHTML('afterbegin', staffClefSVG({ gap: 11 }));
+  }
+  const bubbles = staff
+    ? []
+    : notes.map((n, i) => {
+        const b = h(
+          'div',
+          { class: 'nb' },
+          h(
+            'div',
+            { class: 'nb-note' },
+            h('span', { class: 'nb-name' }, noteName(n.midi)),
+            n.finger ? h('span', { class: 'nb-finger' }, n.finger) : null,
+          ),
+          n.lyric ? h('div', { class: 'nb-lyric' }, n.lyric) : null,
+        );
+        b.style.setProperty('--w', Math.max(48, Math.min(120, 30 + n.dur * 30)) + 'px');
+        const nn = b.firstChild;
+        nn.style.background = noteColor(n.midi);
+        nn.style.color = noteTextColor(n.midi);
+        if (twoHands) {
+          b.classList.add(n.hand === 'left' ? 'lh' : 'rh');
+          b.firstChild.append(h('span', { class: 'nb-hand' }, n.hand === 'left' ? 'G' : 'D'));
+        } else if (n.midi < 60) b.classList.add('low');
+        track.append(b);
+        return b;
+      });
 
   function scrollTo(i) {
-    const b = bubbles[Math.min(i, bubbles.length - 1)];
-    if (!b) return;
-    const x = b.offsetLeft + b.offsetWidth / 2 - lane.clientWidth * 0.32;
+    const j = Math.min(i, notes.length - 1);
+    let x;
+    if (staff) x = staffXs[j] - lane.clientWidth * 0.4;
+    else {
+      const b = bubbles[j];
+      if (!b) return;
+      x = b.offsetLeft + b.offsetWidth / 2 - lane.clientWidth * 0.32;
+    }
     track.style.transform = `translateX(${-x}px)`;
   }
 
-  function show() {
-    bubbles.forEach((b, i) => {
-      b.classList.toggle('done', i < idx);
-      b.classList.toggle('now', i === idx);
-    });
-    scrollTo(idx);
-    shell.setProgress(idx / notes.length);
-    if (idx < notes.length && shell.keyboard) shell.keyboard.setTargets([notes[idx].midi], { label: true });
+  function mark(i, cur) {
+    if (staff) {
+      track.querySelectorAll('.sn').forEach((g) => {
+        const k = +g.dataset.i;
+        g.classList.toggle('done', k < cur);
+        g.classList.toggle('now', k === i);
+      });
+    } else
+      bubbles.forEach((b, k) => {
+        b.classList.toggle('done', k < cur);
+        b.classList.toggle('now', k === i);
+      });
   }
 
-  shell.expect = (m) => idx < notes.length && pc(m) === pc(notes[idx].midi);
+  function show() {
+    mark(idx, idx);
+    scrollTo(idx);
+    shell.setProgress(idx / notes.length);
+    if (shell.keyboard) shell.keyboard.setTargets(idx < notes.length && hintHere ? [notes[idx].midi] : [], { label: true });
+  }
+
+  shell.expect = (m) => idx < notes.length && matches(m, notes[idx]);
   shell.handler = (m) => {
     if (!alive || demoing || idx >= notes.length) return;
     const target = notes[idx];
-    if (pc(m) === pc(target.midi)) {
+    if (matches(m, target)) {
       shell.keyboard.flash(m, 'good');
       idx++;
       wrongHere = false;
+      hintHere = !staff;
       if (idx >= notes.length) return end();
       show();
       if (idx === 1) shell.say('C’est parti, continue ! 🎶', 'excited', false);
@@ -89,7 +127,26 @@ export default function songGame(shell, mission, finish) {
         wrongHere = true;
         sfxError();
       }
-      shell.say(`Cherche ${noteName(target.midi)}, la touche qui brille !`, 'oops', false);
+      if (staff && !hintHere) {
+        hintHere = true;
+        show();
+      }
+      if (exact && pc(m) === pc(target.midi))
+        shell.say(
+          twoHands
+            ? `Bonne note, mais avec la main ${target.hand === 'left' ? 'gauche, plus grave' : 'droite, plus aiguë'} !`
+            : `C’est bien ${noteName(m)}, mais ${m > target.midi ? 'plus grave' : 'plus aigu'} !`,
+          'oops',
+          false,
+        );
+      else
+        shell.say(
+          staff
+            ? `Ça, c’est ${noteName(m)}. Regarde bien la note sur la portée !`
+            : `Cherche ${noteName(target.midi)}, la touche qui brille !`,
+          'oops',
+          false,
+        );
     }
   };
 
@@ -115,7 +172,7 @@ export default function songGame(shell, mission, finish) {
         setTimeout(() => {
           if (!alive) return;
           playNote(n.midi, { dur: Math.max(0.25, n.dur * beat * 0.9) });
-          bubbles.forEach((b, j) => b.classList.toggle('now', j === i));
+          mark(i, 0);
           scrollTo(i);
           if (shell.keyboard) shell.keyboard.setTargets([n.midi], { label: true });
         }, t * 1000),
@@ -150,7 +207,15 @@ export default function songGame(shell, mission, finish) {
   };
 
   show();
-  shell.say(`On joue « ${song.title} » ! Joue la touche qui brille. Tu peux d’abord écouter.`, 'happy');
+  if (staff) shell.say(`On lit « ${song.title} » sur la partition ! Joue la note entourée. Tu peux d’abord écouter.`, 'happy');
+  else if (twoHands)
+    shell.say(
+      song.hands === 'left'
+        ? `On joue « ${song.title} » avec la main gauche ! Joue la touche qui brille.`
+        : 'Notes bleues : main gauche. Notes orange : main droite. Joue la touche qui brille !',
+      'happy',
+    );
+  else shell.say(`On joue « ${song.title} » ! Joue la touche qui brille. Tu peux d’abord écouter.`, 'happy');
   requestAnimationFrame(() => scrollTo(idx));
   return {
     destroy() {

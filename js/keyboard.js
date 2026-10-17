@@ -145,7 +145,7 @@ export class Keyboard {
       if (!k) continue;
       k.classList.add('target');
       k.style.setProperty('--tc', isBlack(m) ? '#ffd60a' : noteColor(m));
-      if (label && !isBlack(m)) k.append(h('span', { class: 'tlabel' }, noteName(m)));
+      if (label) k.append(h('span', { class: 'tlabel' }, noteName(m)));
     }
   }
 

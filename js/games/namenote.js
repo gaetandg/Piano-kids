@@ -1,11 +1,13 @@
-// « Comment je m'appelle ? » : une touche s'allume, on choisit son nom.
+// « Comment je m'appelle ? » : une touche s'allume (ou une note sur la portée), on choisit son nom.
 import { h } from '../ui.js';
 import { playNote, sfxSuccess, sfxError } from '../audio.js';
 import { pc, noteName, noteColor, noteTextColor, pick } from '../music.js';
+import { staffSVG } from '../staff.js';
 import { starsFromMistakes } from './shell.js';
 
 export const config = (m) => ({
   allowMode: false,
+  showKeyboard: m.display !== 'staff',
   kb: { range: [Math.min(...m.notes), Math.max(...m.notes, 72)], colors: false, interactive: false },
 });
 
@@ -18,10 +20,12 @@ export default function namenote(shell, mission, finish) {
   let alive = true;
   let locked = true;
 
+  const staff = mission.display === 'staff';
   const replay = h('button', { class: 'btn sound', onclick: () => target != null && playNote(target) }, '🔊 Réécouter');
   const choices = h('div', { class: 'choices' });
   const counter = h('div', { class: 'counter' });
-  shell.stage.append(counter, choices, replay);
+  const staffBox = h('div', { class: 'staff-box' });
+  shell.stage.append(counter, staff ? staffBox : null, choices, replay);
   shell.dock(replay);
 
   // un bouton par nom de note
@@ -50,7 +54,11 @@ export default function namenote(shell, mission, finish) {
     showMystery();
     playNote(target);
     locked = false;
-    if (round === 0) shell.say('Une touche s’allume. Comment s’appelle cette note ?', 'think');
+    if (round === 0)
+      shell.say(
+        staff ? 'Comment s’appelle cette note sur la portée ?' : 'Une touche s’allume. Comment s’appelle cette note ?',
+        'think',
+      );
     else shell.say('Et celle-là ?', 'think', false);
   }
 
@@ -60,8 +68,11 @@ export default function namenote(shell, mission, finish) {
       locked = true;
       btn.classList.add('right');
       sfxSuccess();
-      shell.keyboard.clearMarks('mystery');
-      shell.keyboard.setTargets([target], { label: true });
+      if (staff) staffBox.innerHTML = staffSVG([{ midi: target }], { width: 240, colors: true, names: true });
+      else {
+        shell.keyboard.clearMarks('mystery');
+        shell.keyboard.setTargets([target], { label: true });
+      }
       shell.say(`Oui ! C’est ${noteName(target)} !`, 'excited', false);
       round++;
       shell.setProgress(round / rounds);
@@ -70,12 +81,22 @@ export default function namenote(shell, mission, finish) {
       mistakes++;
       btn.classList.add('wrong');
       sfxError();
-      shell.say('Pas tout à fait… Regarde les touches noires pour t’aider !', 'oops', false);
+      shell.say(
+        staff
+          ? 'Pas tout à fait… Compte les lignes depuis le bas : Mi est sur la 1re ligne.'
+          : 'Pas tout à fait… Regarde les touches noires pour t’aider !',
+        'oops',
+        false,
+      );
     }
   }
 
   // la touche mystère : surlignée sans sa couleur, avec un « ? »
   function showMystery() {
+    if (staff) {
+      staffBox.innerHTML = staffSVG([{ midi: target }], { width: 240, colors: false });
+      return;
+    }
     shell.keyboard.setTargets([]);
     shell.keyboard.clearMarks('mystery');
     shell.keyboard.mark(target, 'mystery');

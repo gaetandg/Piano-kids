@@ -3,6 +3,7 @@ import { h, wait } from '../ui.js';
 import { playNote, sfxSuccess, sfxError } from '../audio.js';
 import { pc, noteName, isBlack, noteColor, STICKER_NAMES } from '../music.js';
 import { handSVG } from './art.js';
+import { staffSVG } from '../staff.js';
 
 export const config = () => ({ allowMode: true, kb: { range: 'piano' } });
 
@@ -71,6 +72,20 @@ export default function intro(shell, mission, finish) {
     extra.innerHTML = '';
     tryBox.innerHTML = '';
     if (s.img === 'hand') extra.append(h('div', { class: 'hand-art', html: handSVG() }));
+    if (s.img === 'hand-left') extra.append(h('div', { class: 'hand-art', html: handSVG({ left: true }) }));
+    if (s.img === 'hands') extra.append(h('div', { class: 'hand-art two', html: handSVG({ left: true }) + handSVG() }));
+    if (s.staff) {
+      const st = s.staff;
+      extra.append(
+        h('div', {
+          class: 'staff-box',
+          html: staffSVG(
+            st.notes.map((m) => ({ midi: m })),
+            { width: Math.min(420, Math.max(220, 120 + st.notes.length * 40)), colors: st.colors !== false, names: !!st.names },
+          ),
+        }),
+      );
+    }
     if (s.img === 'sticker') {
       const pcs = Array.isArray(s.stickerPc) ? s.stickerPc : [s.stickerPc];
       extra.append(
@@ -97,8 +112,15 @@ export default function intro(shell, mission, finish) {
     nextBtn.textContent = i === slides.length - 1 ? 'Terminer ✓' : 'Suivant ▶';
 
     tryState = null;
+    shell.acceptChords = false;
     if (s.try) {
-      tryState = { ...s.try, pos: 0, count: s.try.count || (s.try.seq ? s.try.seq.length : 1) };
+      tryState = {
+        ...s.try,
+        pos: 0,
+        count: s.try.count || (s.try.seq ? s.try.seq.length : s.try.chord ? s.try.chord.length : 1),
+        got: [],
+      };
+      shell.acceptChords = !!s.try.chord; // deux notes ensemble : on veut les recevoir toutes les deux
       nextBtn.style.display = 'none';
       renderTry();
       skipTimer = setTimeout(() => {
@@ -116,12 +138,19 @@ export default function intro(shell, mission, finish) {
     for (let k = 0; k < t.count; k++) {
       let label = '♪';
       let color = null;
+      let done = k < t.pos;
       if (t.seq) {
         label = noteName(t.seq[k] + 60);
         color = noteColor(t.seq[k] + 60);
       }
-      const d = h('span', { class: 'try-dot' + (k < t.pos ? ' ok' : '') + (k === t.pos ? ' now' : '') }, label);
-      if (color && k < t.pos) d.style.background = color;
+      if (t.chord) {
+        const m = t.chord[k];
+        label = `${noteName(m)} ${m < 60 ? '(main gauche)' : '(main droite)'}`;
+        color = noteColor(m);
+        done = t.got.includes(m);
+      }
+      const d = h('span', { class: 'try-dot' + (done ? ' ok' : '') + (!t.chord && k === t.pos ? ' now' : '') }, label);
+      if (color && done) d.style.background = color;
       if (color) d.style.borderColor = color;
       dots.append(d);
     }
@@ -135,13 +164,19 @@ export default function intro(shell, mission, finish) {
     );
   }
 
-  shell.expect = (m) => !!tryState && (tryState.any || pc(m) === tryState.seq[tryState.pos]);
+  // note attendue d'un accord : la bonne touche, sinon la même note à une autre octave
+  const chordMatch = (t, m) =>
+    t.chord.find((x) => x === m && !t.got.includes(x)) ?? t.chord.find((x) => pc(x) === pc(m) && !t.got.includes(x));
+  shell.expect = (m) =>
+    !!tryState && (tryState.any || (tryState.chord ? chordMatch(tryState, m) != null : pc(m) === tryState.seq[tryState.pos]));
   shell.handler = (m) => {
     if (!tryState) return;
     const t = tryState;
-    const ok = t.any || pc(m) === t.seq[t.pos];
+    const hit = t.chord ? chordMatch(t, m) : null;
+    const ok = t.any || (t.chord ? hit != null : pc(m) === t.seq[t.pos]);
     if (ok) {
       shell.keyboard.flash(m, 'good');
+      if (t.chord) t.got.push(hit);
       t.pos++;
       if (t.any) {
         const intro = shell.mode === 'piano' ? 'Je t’ai entendu !' : 'Bravo !';
@@ -150,6 +185,7 @@ export default function intro(shell, mission, finish) {
       renderTry();
       if (t.pos >= t.count) {
         tryState = null;
+        shell.acceptChords = false;
         clearTimeout(skipTimer);
         sfxSuccess();
         if (!t.any) shell.say('Bravo, c’est parfait ! 🎉', 'excited');
@@ -160,7 +196,7 @@ export default function intro(shell, mission, finish) {
     } else {
       shell.keyboard.flash(m, 'bad');
       sfxError();
-      shell.say(`Oups, ça c’est ${noteName(m)}. Essaie encore !`, 'oops');
+      if (!t.chord || !shell.acceptChords) shell.say(`Oups, ça c’est ${noteName(m)}. Essaie encore !`, 'oops');
     }
   };
 

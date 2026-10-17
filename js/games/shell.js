@@ -76,6 +76,7 @@ export function createShell(app, opts) {
     keyboard: null,
     handler: null, // (midi, source) => void
     expect: null, // (midi) => vrai si c'est une note attendue (pour choisir dans un accord)
+    acceptChords: false, // vrai : toutes les notes d'un accord sont transmises au jeu
     playTaps: true, // jouer le son quand on touche l'écran
     inputEnabled: true,
     onRefresh: null, // appelé après changement de mode ou de taille
@@ -83,6 +84,9 @@ export function createShell(app, opts) {
       return mode;
     },
   };
+
+  // Peut-on exiger la bonne octave ? Oui à l'écran, ou au vrai piano quand le micro est réglé.
+  shell.octaveStrict = () => mode === 'screen' || !!state.settings().octaveCalibrated;
 
   shell.say = (text, mood = 'happy', speak = true) => {
     bubble.textContent = text;
@@ -111,6 +115,11 @@ export function createShell(app, opts) {
   function onMic(notes) {
     if (!shell.inputEnabled || destroyed) return;
     if (shell.keyboard) notes.forEach((m) => shell.keyboard.showPlayed(m));
+    if (shell.acceptChords) {
+      // exercice « deux notes ensemble » : chaque note de l'accord compte
+      for (const x of notes) if (shell.handler && (!shell.expect || shell.expect(x))) shell.handler(x, 'mic');
+      return;
+    }
     // Accord : si une des notes est celle attendue, c'est elle qui compte (une seule réponse)
     const m = (shell.expect && notes.find((x) => shell.expect(x))) ?? notes[0];
     if (shell.handler) shell.handler(m, 'mic');

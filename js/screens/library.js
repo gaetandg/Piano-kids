@@ -14,6 +14,8 @@ export function songsScreen(app) {
   const s = state.settings();
   const list = h('div', { class: 'song-list' });
   SONGS.forEach((song) => {
+    const planet = findPlanet(song.planet);
+    if (!planet) return; // chanson d'une planète pas encore ouverte
     const unlocked = planetUnlocked(p, song.planet, s.unlockAll);
     const stars = (p.songStars || {})[song.id] || 0;
     const pcs = [...new Set(song.notes.map((n) => pc(n.midi)))].sort((a, b) => a - b);
@@ -36,7 +38,7 @@ export function songsScreen(app) {
                 pcs.map((x) => h('i', { style: { background: noteColor(x + 60) } })),
               ),
             )
-          : h('span', { class: 'song-meta' }, 'Débloquée sur la ' + findPlanet(song.planet).name),
+          : h('span', { class: 'song-meta' }, 'Débloquée sur la ' + planet.name),
       ),
       unlocked ? starsRow(stars, 3, 'small') : null,
     );

@@ -3,6 +3,8 @@ import { totalStars } from './state.js';
 
 const C4 = 60;
 const WHITE_C4_C5 = [60, 62, 64, 65, 67, 69, 71, 72];
+const LH_C = 48; // Do grave : position de la main gauche
+const LH_NOTES = [48, 50, 52, 53, 55];
 
 export const PLANETS = [
   {
@@ -321,14 +323,160 @@ export const PLANETS = [
       { id: 'p6-song3', type: 'song', title: 'Chanson : Joyeux anniversaire', song: 'anniversaire' },
     ],
   },
-  { id: 'p7', name: 'Planète Main gauche', desc: 'Jouer avec les deux mains', look: 'left', comingSoon: true, missions: [] },
+  {
+    id: 'p7',
+    name: 'Planète Main gauche',
+    desc: 'Jouer avec les deux mains',
+    look: 'left',
+    missions: [
+      {
+        id: 'p7-intro',
+        type: 'intro',
+        title: 'La main gauche',
+        slides: [
+          {
+            text: 'Bienvenue sur la planète Main gauche ! Jusqu’ici, tu jouais avec la main droite. Maintenant, la main gauche entre en piste ! 🖐️',
+            mood: 'excited',
+          },
+          {
+            text: 'Ta main gauche aussi a des numéros : le pouce, c’est 1, et le petit doigt, c’est 5.',
+            img: 'hand-left',
+          },
+          {
+            text: 'Pose ta main gauche sur le Do grave, à gauche : le petit doigt sur Do, puis Ré, Mi, Fa… et le pouce sur Sol.',
+            img: 'hand-left',
+            kb: { range: [LH_C, 72], targets: LH_NOTES, label: true },
+            sound: LH_NOTES,
+          },
+          {
+            text: 'À toi : joue Do, Ré, Mi, Fa, Sol avec la main gauche, en commençant par le petit doigt.',
+            kb: { range: [LH_C, 72], targets: LH_NOTES, label: true },
+            try: { seq: [0, 2, 4, 5, 7], prompt: 'Do Ré Mi Fa Sol, main gauche' },
+          },
+          {
+            text: 'Et maintenant à l’envers : Sol, Fa, Mi, Ré, Do, en commençant par le pouce !',
+            kb: { range: [LH_C, 72], targets: LH_NOTES, label: true },
+            try: { seq: [7, 5, 4, 2, 0], prompt: 'Sol Fa Mi Ré Do, main gauche' },
+          },
+        ],
+      },
+      { id: 'p7-play', type: 'playnote', title: 'La fusée de gauche', notes: LH_NOTES, hand: 'left', exact: true },
+      { id: 'p7-song1', type: 'song', title: 'Chanson : Au clair de la lune (main gauche)', song: 'clair-gauche' },
+      {
+        id: 'p7-intro2',
+        type: 'intro',
+        title: 'Les deux mains',
+        slides: [
+          {
+            text: 'Maintenant, les deux mains ensemble ! La main gauche joue les notes graves, la main droite les notes aiguës.',
+            img: 'hands',
+            mood: 'excited',
+          },
+          {
+            text: 'Main gauche sur le Do grave, main droite sur le Do du milieu. Dans les chansons, les bulles BLEUES sont pour la main gauche et les ORANGE pour la main droite.',
+            kb: { range: [LH_C, 72], targets: [LH_C, C4], label: true },
+            sound: [LH_C, C4],
+          },
+          {
+            text: 'À toi : joue Do avec la main gauche et Mi avec la main droite, en même temps !',
+            kb: { range: [LH_C, 72], targets: [LH_C, 64], label: true },
+            try: { chord: [LH_C, 64], prompt: 'Do à gauche + Mi à droite' },
+          },
+          {
+            text: 'Encore un : Mi avec la main gauche et Sol avec la main droite !',
+            kb: { range: [LH_C, 72], targets: [52, 67], label: true },
+            try: { chord: [52, 67], prompt: 'Mi à gauche + Sol à droite' },
+          },
+        ],
+      },
+      { id: 'p7-song2', type: 'song', title: 'Chanson : Ah ! vous dirai-je, maman (2 mains)', song: 'maman-2mains' },
+      { id: 'p7-song3', type: 'song', title: 'Chanson : Au clair de la lune (2 mains)', song: 'clair-2mains' },
+    ],
+  },
   {
     id: 'p8',
     name: 'Étoile des partitions',
     desc: 'Lire les notes sur la portée',
     look: 'score',
-    comingSoon: true,
-    missions: [],
+    missions: [
+      {
+        id: 'p8-intro',
+        type: 'intro',
+        title: 'La portée',
+        slides: [
+          {
+            text: 'Bienvenue sur l’étoile des partitions ! Les musiciens écrivent les notes sur 5 lignes : c’est la portée. 🎼',
+            mood: 'excited',
+            staff: { notes: [] },
+          },
+          {
+            text: 'Au début, il y a la clé de sol. Elle s’enroule autour de la 2e ligne : la note posée sur cette ligne s’appelle Sol !',
+            staff: { notes: [67], names: true },
+          },
+          {
+            text: 'Plus la note est haute sur la portée, plus le son est aigu. Écoute : Do, Ré, Mi, Fa, Sol.',
+            staff: { notes: [60, 62, 64, 65, 67], names: true },
+            kb: { range: [C4, 72], targets: [60, 62, 64, 65, 67], label: true },
+            sound: [60, 62, 64, 65, 67],
+          },
+          {
+            text: 'Le Do du milieu a sa petite ligne à lui, sous la portée. Mi est sur la 1re ligne, Sol sur la 2e.',
+            staff: { notes: [60, 64, 67], names: true },
+          },
+          {
+            text: 'À toi : lis les notes sur la portée et joue-les !',
+            staff: { notes: [60, 64, 67] },
+            kb: { range: [C4, 72] },
+            try: { seq: [0, 4, 7], prompt: 'Joue les notes de la portée' },
+          },
+        ],
+      },
+      { id: 'p8-name1', type: 'namenote', title: 'Quelle est cette note ?', notes: [60, 62, 64, 65, 67], display: 'staff' },
+      { id: 'p8-play1', type: 'playnote', title: 'Lis et joue', notes: [60, 62, 64, 65, 67], display: 'staff' },
+      { id: 'p8-song1', type: 'song', title: 'Partition : Mi Ré Do', song: 'mi-re-do', display: 'staff' },
+      {
+        id: 'p8-intro2',
+        type: 'intro',
+        title: 'Plus haut sur la portée',
+        slides: [
+          {
+            text: 'On continue de monter : La entre la 2e et la 3e ligne, Si sur la 3e ligne, et Do juste au-dessus.',
+            staff: { notes: [67, 69, 71, 72], names: true },
+            kb: { range: [C4, 72], targets: [67, 69, 71, 72], label: true },
+            sound: [67, 69, 71, 72],
+          },
+          {
+            text: 'Une note sur une ligne, une note entre deux lignes, une note sur une ligne… La gamme monte comme une échelle ! 🪜',
+            staff: { notes: WHITE_C4_C5, names: true },
+            sound: WHITE_C4_C5,
+          },
+        ],
+      },
+      {
+        id: 'p8-name2',
+        type: 'namenote',
+        title: 'Le grand quiz de la portée',
+        notes: WHITE_C4_C5.slice(0, 7),
+        display: 'staff',
+      },
+      {
+        id: 'p8-play2',
+        type: 'playnote',
+        title: 'Lis sans les couleurs',
+        notes: WHITE_C4_C5,
+        display: 'staff',
+        colors: false,
+      },
+      {
+        id: 'p8-song2',
+        type: 'song',
+        title: 'Partition : Au clair de la lune',
+        song: 'clair-debut',
+        display: 'staff',
+        colors: false,
+      },
+      { id: 'p8-song3', type: 'song', title: 'Partition : Hymne à la joie', song: 'hymne', display: 'staff', colors: false },
+    ],
   },
 ];
 

@@ -1181,6 +1181,14 @@ h3 {
 .key.target {
   animation: keypulse 1.1s ease-in-out infinite;
 }
+.key.black .tlabel {
+  font-size: clamp(8px, 2.2vw, 14px);
+  padding: 2px 2px;
+  background: #fff;
+  white-space: nowrap;
+  margin-top: auto;
+  margin-bottom: 6px;
+}
 .key.white.target {
   background: linear-gradient(#ffffff, color-mix(in srgb, var(--tc) 55%, white));
 }
@@ -2322,4 +2330,149 @@ h3 {
 }
 .game.compact .r-track {
   height: 90px;
+}
+
+/* ---------- Portée (partitions) ---------- */
+/* Symboles musicaux (clé de sol, dièse) : police Noto Music, licence SIL OFL */
+@font-face {
+  font-family: 'Noto Music';
+  src: url('../assets/fonts/noto-music-symbols.woff2') format('woff2');
+  unicode-range: U+25CC, U+2669-266F, U+1D000-1D0F5, U+1D100-1D245;
+  font-display: block;
+}
+.staff,
+.staff-track,
+.staff-clef {
+  display: block;
+  background: #fffdf5;
+}
+.staff {
+  width: min(100%, 420px);
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+}
+.st-line {
+  stroke: #3a3a55;
+  stroke-width: 1.4;
+}
+.st-stem {
+  stroke: #1a1a2e;
+  stroke-width: 1.6;
+}
+.st-flag {
+  stroke: #1a1a2e;
+  stroke-width: 2;
+  fill: none;
+}
+.st-clef {
+  font-family: 'Noto Music', 'Bravura', 'Segoe UI Symbol', serif;
+  fill: #1a1a2e;
+}
+.st-acc {
+  font-family: 'Noto Music', 'Segoe UI Symbol', sans-serif;
+  fill: #1a1a2e;
+  font-weight: 700;
+}
+.st-name {
+  font-family: var(--font);
+  font-weight: 700;
+  fill: #1a1a2e;
+  text-anchor: middle;
+}
+.sn-halo {
+  fill: transparent;
+}
+.sn.now .sn-halo {
+  fill: rgba(255, 214, 10, 0.55);
+  stroke: #e0a800;
+  stroke-width: 2;
+}
+.sn.done {
+  opacity: 0.35;
+}
+.staff-lane {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #fffdf5;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+}
+.staff-lane .staff-clef {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  box-shadow: 6px 0 8px -4px rgba(0, 0, 0, 0.15);
+}
+.staff-lane .lane-track {
+  display: block;
+}
+
+/* chansons à deux mains : bleu = main gauche, orange = main droite */
+.nb.lh .nb-note {
+  outline: 3px solid #4da3ff;
+}
+.nb.rh .nb-note {
+  outline: 3px solid #ff9f1c;
+}
+.nb-hand {
+  position: absolute;
+  top: -9px;
+  left: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: #ff9f1c;
+}
+.nb.lh .nb-hand {
+  background: #4da3ff;
+}
+.nb.now .nb-note {
+  outline-color: #fff;
+}
+.staff-box {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.staff-box.pop {
+  animation: notepop 0.4s ease;
+}
+/* téléphone à l'horizontale : la portée prend la hauteur disponible, sans déborder */
+.game.compact .stage > .staff-box {
+  flex: 1 1 0;
+  min-height: 80px;
+}
+.game.compact .stage > .staff-box .staff {
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+}
+.game.compact .slide-extra .staff {
+  width: auto;
+  height: 30vh;
+  min-height: 90px;
+  max-width: 100%;
+}
+/* portée + exercice : côte à côte pour que tout tienne en hauteur */
+.game.compact .slide:has(.staff-box):has(.try-dots) {
+  flex-direction: row;
+  justify-content: center;
+  gap: 18px;
+}
+
+.hand-art.two {
+  display: flex;
+  gap: 8px;
+}
+.hand-art.two svg {
+  width: min(170px, 42vw);
 }
