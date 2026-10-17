@@ -10,7 +10,8 @@ import { say } from '../speech.js';
 import { pianoPreset, noteName, pc, isBlack } from '../music.js';
 
 let skipped = false; // « Plus tard » : on ne redemande pas pendant cette visite
-const CALIB_VERSION = 2; // 2 : touche de gauche + touche de droite (graves vérifiés)
+const CALIB_VERSION = 3; // 2 : touche de gauche + de droite ; 3 : + accord du clavier (justesse)
+const MAX_AUTO_SENSITIVITY = 0.6;
 
 // Faut-il proposer le réglage avant de jouer au vrai piano ?
 export function needsCalibration() {
@@ -24,7 +25,7 @@ export function applyMicSettings() {
   const s = state.settings();
   const p = pianoPreset(s.piano);
   mic.setSensitivity(s.micSensitivity);
-  mic.configure({ from: p.from, to: p.to, shift: s.octaveShift, calibrated: s.octaveCalibrated });
+  mic.configure({ from: p.from, to: p.to, shift: s.octaveShift, calibrated: s.octaveCalibrated, tuning: s.tuningCents || 0 });
 }
 
 const whiteAtOrAbove = (m) => (isBlack(m) ? m + 1 : m);
@@ -44,7 +45,6 @@ export function calibrateScreen(app, params) {
   let hits = [];
   let misses = 0;
   let leftResult = null; // {raw, level} ou null si l'étape est passée
-  let quietLevels = [];
   let unsub = null;
   let unLevel = null;
   let unDecision = null;
@@ -110,7 +110,8 @@ export function calibrateScreen(app, params) {
     try {
       await unlockAudio();
       // pendant le réglage, on écoute toutes les notes possibles (l'ancien réglage ne doit pas gêner)
-      mic.configure({ shift: 0, calibrated: false });
+      mic.configure({ shift: 0, calibrated: false, tuning: 0 });
+      mic.tracker.tuningCheck = false; // le clavier n'est peut-être pas accordé pile : on le mesure
       unsub = await mic.subscribe(onNote);
       unLevel = mic.onLevel((lvl, muted) => micDot.style.setProperty('--lvl', muted ? 0 : Math.min(1, lvl * 25)));
       unDecision = mic.onDecision(onDecision);
@@ -127,15 +128,13 @@ export function calibrateScreen(app, params) {
     if (!done) applyMicSettings(); // abandon : on remet les réglages d'avant
   }
 
-  // Attaques entendues mais trop faibles : on rend le micro plus sensible
+  // Attaques entendues mais trop faibles : on le signale (sans toucher au réglage : un petit
+  // bruit dans la pièce ne doit pas rendre le micro trop sensible)
+  const centsSeen = [];
   function onDecision(info) {
+    if (info.ok && typeof info.cents === 'number') centsSeen.push(info.cents);
     if (done || info.ok || info.reason !== 'trop faible') return;
-    quietLevels.push(info.level);
-    const g = Math.max(0.0015, info.level * 0.6);
-    if (g < mic.tracker.gate) {
-      mic.tracker.gate = g;
-      status.textContent = 'Je t’entends à peine… Joue un peu plus fort, ou rapproche le téléphone.';
-    }
+    status.textContent = 'Je t’entends à peine… Joue un peu plus fort, ou rapproche le téléphone.';
   }
 
   function skipLeft() {
@@ -193,12 +192,19 @@ export function calibrateScreen(app, params) {
     state.setSetting('octaveCalibrated', true);
     state.setSetting('bassCheck', bass);
     state.setSetting('calibVersion', CALIB_VERSION);
-    // micro assez sensible pour la touche la plus faible jouée pendant le réglage
-    const levels = [rightLevel, leftResult && leftResult.level, ...quietLevels].filter((x) => x > 0);
+    // accord du clavier : médiane des écarts mesurés sur les touches jouées
+    const cs = centsSeen.slice(-6).sort((a, b) => a - b);
+    const tuning = cs.length ? cs[cs.length >> 1] : 0;
+    state.setSetting('tuningCents', Math.abs(tuning) <= 45 ? Math.round(tuning) : 0);
+    // micro assez sensible pour les deux touches jouées, sans dépasser un plafond
+    // (trop sensible, il entendrait les voix et les bruits de la pièce)
+    const levels = [rightLevel, leftResult && leftResult.level].filter((x) => x > 0);
     if (levels.length) {
-      const wanted = Math.min(...levels) * 0.45;
+      const wanted = Math.min(...levels) * 0.4;
       const s = state.settings();
-      if (0.03 * Math.pow(0.067, s.micSensitivity) > wanted) state.setSetting('micSensitivity', sensitivityForGate(wanted));
+      if (0.03 * Math.pow(0.067, s.micSensitivity) > wanted) {
+        state.setSetting('micSensitivity', Math.min(MAX_AUTO_SENSITIVITY, sensitivityForGate(wanted)));
+      }
     }
     applyMicSettings();
     kb.setTargets([]);

@@ -7,10 +7,11 @@ const DEFAULT = {
   currentId: null,
   settings: {
     piano: '37C',
-    micSensitivity: 0.5,
+    micSensitivity: 0.45,
     octaveShift: 0,
     octaveCalibrated: false,
     bassCheck: null, // 'ok' | 'octave' | 'other' | 'skipped' : les graves au réglage
+    tuningCents: 0, // accord du clavier (écart avec le La 440 Hz)
     voice: true,
     volume: 0.8,
     unlockAll: false,
@@ -25,7 +26,13 @@ function load() {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const d = JSON.parse(raw);
-      return { ...DEFAULT, ...d, settings: { ...DEFAULT.settings, ...(d.settings || {}) } };
+      const st = { ...DEFAULT.settings, ...(d.settings || {}) };
+      // v0.3.1 pouvait régler le micro beaucoup trop sensible : il entendait les voix et les bruits
+      if (!st.sensitivityFixed) {
+        if (st.micSensitivity > 0.6) st.micSensitivity = 0.45;
+        st.sensitivityFixed = true;
+      }
+      return { ...DEFAULT, ...d, settings: st };
     }
   } catch (e) {
     /* stockage indisponible */

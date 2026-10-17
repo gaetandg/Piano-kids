@@ -6,6 +6,7 @@ let noFrench = false; // aucune voix française sur l'appareil : on se tait plut
 let speakingUntil = 0;
 let speaking = false;
 let lastId = 0;
+let endedAt = -1e9; // fin de la dernière phrase : le micro attend encore un peu (écho de la voix)
 
 const hasTTS = () => typeof window !== 'undefined' && 'speechSynthesis' in window;
 
@@ -61,7 +62,10 @@ export function say(text) {
   return new Promise((resolve) => {
     const done = () => {
       // une phrase interrompue ne doit pas couper l'état de la suivante
-      if (id === lastId) speaking = false;
+      if (id === lastId && speaking) {
+        speaking = false;
+        endedAt = performance.now();
+      }
       resolve();
     };
     u.onend = done;
@@ -79,5 +83,6 @@ export function stopSpeaking() {
 }
 
 export function isSpeaking() {
-  return speaking && performance.now() < speakingUntil;
+  const now = performance.now();
+  return (speaking && now < speakingUntil) || now < endedAt + 400;
 }

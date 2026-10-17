@@ -2198,3 +2198,128 @@ h3 {
 .diag .ko {
   color: #ffb3b3;
 }
+
+/* ---------- Jeu du tambour ---------- */
+.r-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+.r-left {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.r-track {
+  position: relative;
+  width: 100%;
+  height: 104px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 2px solid var(--line);
+  overflow: hidden;
+}
+.r-target {
+  position: absolute;
+  top: 50%;
+  left: 60px;
+  width: 58px;
+  height: 58px;
+  margin: -29px 0 0 -29px;
+  border-radius: 50%;
+  border: 4px solid var(--yellow);
+  box-shadow: 0 0 16px rgba(255, 214, 10, 0.5);
+}
+.r-target.flash {
+  animation: rflash 0.3s ease;
+}
+@keyframes rflash {
+  50% {
+    background: rgba(255, 214, 10, 0.55);
+    transform: scale(1.18);
+  }
+}
+.r-note,
+.r-count {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: -22px 0 0 -22px;
+  width: 44px;
+  will-change: transform;
+}
+.r-dot {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+  position: relative;
+  z-index: 1;
+}
+.r-note.ti .r-dot {
+  width: 32px;
+  height: 32px;
+  margin-top: 6px;
+}
+.r-tail {
+  position: absolute;
+  left: 22px;
+  top: 12px;
+  height: 20px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.45);
+}
+.r-note small {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 2px;
+}
+.r-note.good .r-dot {
+  background: var(--green);
+  box-shadow: 0 0 18px var(--green);
+}
+.r-note.miss .r-dot {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+}
+.r-count {
+  margin-top: -16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  justify-content: center;
+  font-weight: 700;
+  color: var(--muted);
+}
+.r-feedback {
+  min-height: 28px;
+  font-size: 22px;
+  font-weight: 700;
+}
+.r-feedback.perfect {
+  color: var(--yellow);
+}
+.r-feedback.ok {
+  color: var(--green);
+}
+.r-feedback.miss {
+  color: #ff9a9a;
+}
+.r-feedback.pop {
+  animation: pop 0.25s ease;
+}
+.game.compact .r-area {
+  flex-direction: row;
+}
+.game.compact .r-track {
+  height: 90px;
+}

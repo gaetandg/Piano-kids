@@ -81,16 +81,18 @@ function piano(c, out, midi, t, dur, vel) {
     o.start(t);
     o.stop(stopAt);
   });
-  return stopAt;
+  return t + dur + 0.3; // moment où on ne l'entend plus
 }
 
-function xylo(c, out, midi, t, dur, vel) {
+// Lame de xylophone ; `short` : version brève pour les petits sons de l'app (ding, étoiles)
+function bar(c, out, midi, t, vel, short) {
   const f = midiToFreq(midi);
-  const stopAt = t + 1.2;
+  const k = short ? 0.3 : 1;
+  const stopAt = t + (short ? 0.5 : 1.2);
   [
-    [1, 1, 0.5],
-    [3.93, 0.25, 0.12],
-    [9.2, 0.08, 0.05],
+    [1, 1, 0.5 * k],
+    [3.93, 0.25, 0.12 * k],
+    [9.2, 0.08, 0.05 * k],
   ].forEach(([ratio, amp, tau]) => {
     const o = c.createOscillator();
     o.frequency.value = f * ratio;
@@ -102,7 +104,15 @@ function xylo(c, out, midi, t, dur, vel) {
     o.start(t);
     o.stop(stopAt);
   });
-  return stopAt;
+  return t + (short ? 0.45 : 1.0);
+}
+
+function xylo(c, out, midi, t, dur, vel) {
+  return bar(c, out, midi, t, vel, false);
+}
+
+function chime(c, out, midi, t, dur, vel) {
+  return bar(c, out, midi, t, vel, true);
 }
 
 function space(c, out, midi, t, dur, vel) {
@@ -131,7 +141,7 @@ function space(c, out, midi, t, dur, vel) {
   lfo.start(t);
   lfo.stop(stopAt);
   env.connect(out);
-  return stopAt;
+  return t + dur + 1.2;
 }
 
 function robot(c, out, midi, t, dur, vel) {
@@ -151,7 +161,7 @@ function robot(c, out, midi, t, dur, vel) {
   const stopAt = t + dur + 0.5;
   o.start(t);
   o.stop(stopAt);
-  return stopAt;
+  return t + dur * 0.6 + 0.35;
 }
 
 export const INSTRUMENTS = {
@@ -160,14 +170,16 @@ export const INSTRUMENTS = {
   space: { label: 'Spatial', emoji: '🛸', fn: space },
   robot: { label: 'Robot', emoji: '🤖', fn: robot },
 };
+const SFX = { chime: { fn: chime } }; // sons de l'app (pas proposés au piano libre)
 
 // Joue une note. `when` = délai en secondes depuis maintenant.
 export function playNote(midi, { when = 0, dur = 0.8, vel = 0.9, instrument = 'piano' } = {}) {
   const c = getCtx();
   const t = c.currentTime + 0.01 + when;
-  const fn = (INSTRUMENTS[instrument] || INSTRUMENTS.piano).fn;
-  fn(c, master, midi, t, dur, vel);
-  markBusy(t + dur + 0.25);
+  const fn = (INSTRUMENTS[instrument] || SFX[instrument] || INSTRUMENTS.piano).fn;
+  // le micro n'écoute pas tant que ce son est audible (sinon l'app s'entendrait elle-même)
+  const end = fn(c, master, midi, t, dur, vel);
+  markBusy(end + 0.1);
   return t;
 }
 
@@ -184,11 +196,11 @@ export function playSequence(notes, { gap = 0.05, instrument = 'piano', startDel
 // ---------- Effets sonores ----------
 
 export function sfxSuccess() {
-  [72, 76, 79, 84].forEach((m, i) => playNote(m, { when: i * 0.07, dur: 0.25, vel: 0.5, instrument: 'xylo' }));
+  [72, 76, 79, 84].forEach((m, i) => playNote(m, { when: i * 0.07, dur: 0.25, vel: 0.5, instrument: 'chime' }));
 }
 
 export function sfxBigSuccess() {
-  [72, 76, 79, 84, 88, 91, 96].forEach((m, i) => playNote(m, { when: i * 0.08, dur: 0.35, vel: 0.5, instrument: 'xylo' }));
+  [72, 76, 79, 84, 88, 91, 96].forEach((m, i) => playNote(m, { when: i * 0.08, dur: 0.35, vel: 0.5, instrument: 'chime' }));
 }
 
 export function sfxError() {
@@ -209,12 +221,12 @@ export function sfxError() {
 }
 
 export function sfxStar(i = 0) {
-  playNote(84 + i * 4, { when: 0, dur: 0.3, vel: 0.45, instrument: 'xylo' });
-  playNote(91 + i * 4, { when: 0.06, dur: 0.3, vel: 0.35, instrument: 'xylo' });
+  playNote(84 + i * 4, { when: 0, dur: 0.3, vel: 0.45, instrument: 'chime' });
+  playNote(91 + i * 4, { when: 0.06, dur: 0.3, vel: 0.35, instrument: 'chime' });
 }
 
 export function sfxClick() {
-  playNote(96, { dur: 0.05, vel: 0.15, instrument: 'xylo' });
+  playNote(96, { dur: 0.05, vel: 0.15, instrument: 'chime' });
 }
 
 export function sfxWhoosh() {

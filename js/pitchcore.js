@@ -202,6 +202,45 @@ function findNotesWithFundamental(R, binHz, refScore, maxPeak, count, minMidi, m
   return notes;
 }
 
+// Écart de justesse (en cents) de la note `midi` mesuré sur le spectre D : position précise
+// de ses harmoniques (interpolation parabolique). Un piano accordé tombe pile sur la note ;
+// une voix (parole, chant) tombe souvent entre deux notes.
+export function tuningCents(D, binHz, midi) {
+  const f = midiHz(midi);
+  const est = [];
+  for (let k = 1; k <= 8; k++) {
+    const fk = harmHz(f, k);
+    if (fk > 4000) break;
+    const bin = fk / binHz;
+    const w = Math.max(1, Math.round(bin * 0.03));
+    let best = -1;
+    let bv = 0;
+    for (let b = Math.max(2, Math.round(bin) - w); b <= Math.min(D.length - 2, Math.round(bin) + w); b++) {
+      if (D[b] > bv && D[b] >= D[b - 1] && D[b] >= D[b + 1]) {
+        bv = D[b];
+        best = b;
+      }
+    }
+    if (best < 0 || bv <= 0) continue;
+    const a = D[best - 1];
+    const c = D[best + 1];
+    const den = a - 2 * bv + c;
+    const delta = den !== 0 ? (0.5 * (a - c)) / den : 0;
+    const fMeas = (best + delta) * binHz;
+    // les harmoniques graves (mal résolus) comptent moins
+    est.push({ cents: 1200 * Math.log2(fMeas / fk), w: bv * Math.min(1, fk / 400) });
+  }
+  if (!est.length) return 0;
+  est.sort((p, q) => p.cents - q.cents);
+  const tot = est.reduce((s2, e) => s2 + e.w, 0);
+  let acc = 0;
+  for (const e of est) {
+    acc += e.w;
+    if (acc >= tot / 2) return e.cents;
+  }
+  return est[est.length - 1].cents;
+}
+
 // Part de l'énergie ajoutée qui tombe sur les harmoniques des notes trouvées :
 // presque tout pour de vraies notes, peu pour un bruit (claquement, voix, objet qui tombe).
 export function explainedEnergy(D, binHz, notes) {
@@ -291,6 +330,8 @@ export class NoteTracker {
     this.fft = null;
     this.range = [36, 100]; // notes possibles (MIDI) : réduit à celles du clavier une fois réglé
     this.onDecision = null; // diagnostic : appelé à chaque attaque avec ce qui a été décidé
+    this.tuningCheck = true; // refuse les sons qui ne sont pas « justes » (voix, chant…)
+    this.tuningOffset = 0; // accord du clavier en cents (mesuré au réglage)
     this.reset();
   }
 
@@ -307,6 +348,7 @@ export class NoteTracker {
     this.history = []; // derniers spectres
     this.levels = []; // derniers volumes
     this.pending = null;
+    this.confirm = null;
     this.lastOnset = -1e9;
     this.lastMidi = null;
     this.lastEmit = -1e9;
@@ -348,7 +390,29 @@ export class NoteTracker {
         this._report({ t: now, ok: false, reason: 'trop faible', level: rms, gate });
       }
       this.pending = null;
+      this.confirm = null;
       return null;
+    }
+
+    // Confirmation : une note de piano garde exactement la même hauteur ; une voix glisse.
+    if (this.confirm) {
+      const ck = this.confirm;
+      const D2 = new Float32Array(n / 2);
+      for (let b = 1; b <= maxBin; b++) {
+        const d = mag[b] - ck.pre[b];
+        if (d > 0) D2[b] = Math.sqrt(d);
+      }
+      const c = tuningCents(D2, binHz, ck.notes[0]) - this.tuningOffset;
+      if (Math.abs(c - ck.cents) > 10) {
+        this.confirm = null;
+        this.lastOnset = -1e9;
+        this.lastMidi = ck.prevMidi; // ce n'était pas une note : on oublie
+        this.lastEmit = ck.prevEmit;
+        this._report({ t: now, ok: false, reason: 'glisse', notes: ck.notes, level: rms });
+      } else if (this.frame >= ck.until) {
+        this.confirm = null;
+        return this._accept(ck.notes, now, rms, ck.cents);
+      }
     }
 
     // Attaque : part de « nouvelles » fréquences dans le spectre
@@ -439,11 +503,23 @@ export class NoteTracker {
       // l'écho d'une attaque ne doit pas compter comme une deuxième note
       // même note rejouée : il faut que le volume remonte vraiment
       if (r.midi === this.lastMidi && (now - this.lastEmit < 260 || rise < 1.1)) return reject('écho', notes);
+      // Justesse : un piano tombe pile sur la note, une voix souvent entre deux notes
+      const cents = tuningCents(D, binHz, notes[0]) - this.tuningOffset;
+      if (!this.tuningCheck) return this._accept(notes, now, rms, cents);
+      if (Math.abs(cents) > 20) return reject('pas juste', notes);
+      // on vérifie encore pendant 50 ms que la hauteur ne bouge pas avant d'accepter
+      this.confirm = { notes, cents, pre, until: this.frame + 2, prevMidi: this.lastMidi, prevEmit: this.lastEmit };
       this.lastMidi = r.midi;
       this.lastEmit = now;
-      this._report({ t: now, ok: true, notes, level: rms });
-      return notes;
+      return null;
     }
     return null;
+  }
+
+  _accept(notes, now, rms, cents) {
+    this.lastMidi = notes[0];
+    this.lastEmit = now;
+    this._report({ t: now, ok: true, notes, level: rms, cents });
+    return notes;
   }
 }

@@ -124,6 +124,8 @@ export function parentsScreen(app) {
     'pas une note': 'pas reconnu comme une note',
     bruit: 'ressemble à un bruit',
     écho: 'écho de la note précédente',
+    'pas juste': 'pas une note juste (voix, chant ?)',
+    glisse: 'la hauteur glisse (voix, chant ?)',
   };
   function onDecision(info) {
     const names = info.notes ? info.notes.map((m) => `${noteName(m)} (touche ${keyNo(m)})`).join(' + ') : '';

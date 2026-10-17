@@ -22,8 +22,10 @@ class Mic {
   }
 
   // Clavier réglé : on ne cherche que les notes qu'il peut jouer (de sa touche la plus grave à la plus aiguë).
-  configure({ from, to, shift = 0, calibrated = false }) {
+  configure({ from, to, shift = 0, calibrated = false, tuning = 0 }) {
     this.setOctaveShift(shift);
+    this.tracker.tuningOffset = tuning;
+    this.tracker.tuningCheck = true;
     if (calibrated) this.tracker.setRange(from + shift - 1, to + shift + 1);
     else this.tracker.setRange(28, 104);
   }
@@ -94,7 +96,7 @@ class Mic {
     if (isBusy() || isSpeaking()) {
       // L'app parle ou joue : on n'écoute pas pour ne pas se tromper
       this.tracker.reset();
-      this.mutedUntil = now + 120;
+      this.mutedUntil = now + 200;
       this.levelListeners.forEach((fn) => fn(0, true));
       return;
     }

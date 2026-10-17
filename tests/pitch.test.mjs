@@ -226,5 +226,46 @@ for (let r = 0; r < 20; r++) {
 }
 check('bruits forts : au plus 3 notes inventées', phantoms <= 3, `(${phantoms} pour ${20 * 5} claquements)`);
 
+// 10. Voix d'enfants qui parlent ou chantent : la plupart des syllabes ne doivent pas
+//     passer pour des notes (une voix n'est pas « juste » et sa hauteur glisse).
+const FORMANTS = [
+  [800, 1200, 2500],
+  [300, 2300, 3000],
+  [300, 870, 2240],
+  [500, 1700, 2500],
+];
+function speech(seconds, singing) {
+  const out = new Float32Array(Math.floor(seconds * SR));
+  let t = 0.3;
+  while (t < seconds - 0.5) {
+    const dur = singing ? 0.3 + rnd() * 0.4 : 0.12 + rnd() * 0.25;
+    const f0a = 200 + rnd() * 180;
+    const glide = singing ? (rnd() - 0.5) * 0.3 : (rnd() - 0.5) * 3;
+    const F = FORMANTS[Math.floor(rnd() * FORMANTS.length)];
+    const s0 = Math.floor(t * SR);
+    const n = Math.floor(dur * SR);
+    let ph = 0;
+    for (let i = 0; i < n && s0 + i < out.length; i++) {
+      const tt = i / SR;
+      const f0 = f0a * Math.pow(2, (glide * (i / n) + 0.25 * Math.sin(2 * Math.PI * 5.5 * tt) * (singing ? 1 : 0.3)) / 12);
+      ph += (2 * Math.PI * f0) / SR;
+      let x = 0;
+      for (let k = 1; k * f0 < 5000; k++) {
+        let g = 0.15;
+        for (const fc of F) g += 1 / (1 + ((k * f0 - fc) / (0.12 * fc)) ** 2);
+        x += (g / k) * Math.sin(k * ph);
+      }
+      out[s0 + i] += 0.036 * x * Math.min(1, tt / 0.03) * Math.min(1, (dur - tt) / 0.04);
+    }
+    t += dur + (singing ? 0.05 : 0.04 + rnd() * 0.15);
+  }
+  return out;
+}
+seed = 21;
+const spoken = track(speech(20, false)).length;
+const sung = track(speech(20, true)).length;
+check('voix : peu de fausses notes en parlant (20 s)', spoken <= 20, `(${spoken})`);
+check('voix : peu de fausses notes en chantant (20 s)', sung <= 10, `(${sung})`);
+
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est OK');
 process.exit(fails ? 1 : 0);
