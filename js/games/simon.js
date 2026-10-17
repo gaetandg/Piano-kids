@@ -1,9 +1,9 @@
 // « Le code des Martiens » : répéter une suite de notes qui s'allonge.
 import { h, wait } from '../ui.js';
 import { playNote, sfxSuccess, sfxError, sfxBigSuccess } from '../audio.js';
-import { pc, pick, noteColor } from '../music.js';
+import { pc, pick, noteColor, rangeFor } from '../music.js';
 
-export const config = (m) => ({ allowMode: true, kb: { range: [Math.min(...m.notes), Math.max(...m.notes, 72)] } });
+export const config = (m) => ({ allowMode: true, kb: { range: rangeFor(m.notes) } });
 
 export default function simon(shell, mission, finish) {
   const notes = mission.notes;

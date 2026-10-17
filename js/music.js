@@ -35,6 +35,15 @@ export const octaveOf = (midi) => Math.floor(midi / 12) - 1;
 export const midiToFreq = (m) => 440 * Math.pow(2, (m - 69) / 12);
 export const freqToMidi = (f) => 69 + 12 * Math.log2(f / 440);
 
+// Plage de clavier qui contient ces notes (au moins jusqu'au Do aigu), bornée par des touches blanches.
+export function rangeFor(notes, minHi = 72) {
+  let lo = Math.min(...notes);
+  let hi = Math.max(...notes, minHi);
+  if (isBlack(lo)) lo--;
+  if (isBlack(hi)) hi++;
+  return [lo, hi];
+}
+
 export function noteColor(midi) {
   return NOTE_COLORS[pc(midi)] || '#222';
 }
@@ -42,6 +51,7 @@ export function noteColor(midi) {
 // Texte lisible sur la couleur de la note (le jaune et le bleu clair veulent du noir).
 export function noteTextColor(midi) {
   const p = pc(midi);
+  if (BLACK_PCS.includes(p)) return '#ffd60a'; // touches noires : écrit en jaune
   return p === 4 || p === 7 || p === 2 || p === 5 ? '#1a1a2e' : '#fff';
 }
 

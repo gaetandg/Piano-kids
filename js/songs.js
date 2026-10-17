@@ -143,6 +143,16 @@ const RAW = [
       'Au clair de la lu- ne, mon a- mi Pier- rot, prê- te- moi ta plu- me pour é- crire un mot. Ma chan- delle est mor- te, je n’ai plus de feu. Ou- vre- moi ta por- te pour l’a- mour de Dieu.',
   },
   {
+    id: 'mon-sapin',
+    title: 'Mon beau sapin',
+    emoji: '🎄',
+    planet: 'p9',
+    level: 2,
+    bpm: 90,
+    notes: 'G3 C4:.75 C4:.25 C4:1.5 D4:.5 E4:.75 E4:.25 E4:1.5 E4:.5 D4:.5 E4:.5 F4 B3 D4 C4:2',
+    lyrics: 'Mon beau sa- pin, roi des fo- rêts, que j’ai- me ta ver- du- re !',
+  },
+  {
     id: 'douce-nuit',
     title: 'Douce nuit',
     emoji: '🌌',

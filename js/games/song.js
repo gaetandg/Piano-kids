@@ -2,7 +2,7 @@
 // Options de mission : display ('staff' = lire sur une portée), colors (couleurs sur la portée).
 import { h, wait } from '../ui.js';
 import { playNote, sfxError } from '../audio.js';
-import { pc, noteName, noteColor, noteTextColor } from '../music.js';
+import { pc, noteName, noteColor, noteTextColor, isBlack } from '../music.js';
 import { getSong } from '../songs.js';
 import { staffTrack, staffClefSVG } from '../staff.js';
 import { starsFromMistakes } from './shell.js';
@@ -67,6 +67,7 @@ export default function songGame(shell, mission, finish) {
         const nn = b.firstChild;
         nn.style.background = noteColor(n.midi);
         nn.style.color = noteTextColor(n.midi);
+        if (isBlack(n.midi)) nn.classList.add('black-note');
         if (twoHands) {
           b.classList.add(n.hand === 'left' ? 'lh' : 'rh');
           b.firstChild.append(h('span', { class: 'nb-hand' }, n.hand === 'left' ? 'G' : 'D'));

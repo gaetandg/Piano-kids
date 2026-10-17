@@ -5,6 +5,7 @@ const C4 = 60;
 const WHITE_C4_C5 = [60, 62, 64, 65, 67, 69, 71, 72];
 const LH_C = 48; // Do grave : position de la main gauche
 const LH_NOTES = [48, 50, 52, 53, 55];
+const HIGH_NOTES = [72, 74, 76, 77]; // Do, Ré, Mi, Fa aigus
 
 export const PLANETS = [
   {
@@ -477,6 +478,135 @@ export const PLANETS = [
       },
       { id: 'p8-song3', type: 'song', title: 'Partition : Hymne à la joie', song: 'hymne', display: 'staff', colors: false },
     ],
+  },
+  {
+    id: 'p9',
+    name: 'Planète Noël',
+    desc: 'Les notes aiguës et les chansons de Noël',
+    look: 'noel',
+    missions: [
+      {
+        id: 'p9-intro',
+        type: 'intro',
+        title: 'Les notes aiguës',
+        slides: [
+          {
+            text: 'Bienvenue sur la planète Noël ! ❄️ Les lutins de l’espace ont besoin de toi pour jouer les chansons de Noël.',
+            mood: 'excited',
+          },
+          {
+            text: 'Après le Do aigu, les notes continuent vers la droite : Ré, Mi, Fa… Les mêmes noms, mais plus aigus, comme des clochettes ! 🔔',
+            kb: { range: [C4, 79], targets: HIGH_NOTES, label: true },
+            sound: HIGH_NOTES,
+          },
+          {
+            text: 'Pour les jouer, glisse ta main droite vers la droite. Les gommettes t’aident : ce sont les mêmes couleurs !',
+            kb: { range: 'piano', targets: HIGH_NOTES, label: true },
+          },
+          {
+            text: 'À toi : joue Do, Ré, Mi, Fa, tout en haut du piano !',
+            kb: { range: [C4, 79], targets: HIGH_NOTES, label: true },
+            try: { seq: [0, 2, 4, 5], prompt: 'Do Ré Mi Fa aigus' },
+          },
+        ],
+      },
+      {
+        id: 'p9-find',
+        type: 'findkey',
+        title: 'Les clochettes aiguës',
+        intro: 'Les clochettes sonnent tout en haut du piano. Trouve les notes aiguës, à droite du Do aigu !',
+        range: [C4, 84],
+        prompts: [
+          { text: 'Joue le Do aigu', pcs: [0], min: 72, max: 72 },
+          { text: 'Joue le Ré aigu, juste après le Do aigu', pcs: [2], min: 73, max: 83 },
+          { text: 'Joue le Mi aigu', pcs: [4], min: 73, max: 83 },
+          { text: 'Joue le Fa aigu', pcs: [5], min: 73, max: 83 },
+        ],
+        rounds: 8,
+      },
+      { id: 'p9-song1', type: 'song', title: 'Chanson : Mon beau sapin', song: 'mon-sapin' },
+      {
+        id: 'p9-rhythm',
+        type: 'rhythm',
+        title: 'Les grelots du traîneau',
+        patterns: [
+          [1, 1, 2],
+          [1, 1, 1, 1],
+          [1, 1, 1.5, 0.5, 2],
+          [0.5, 0.5, 1, 0.5, 0.5, 1],
+          [1, 1, 2, 2],
+        ],
+      },
+      { id: 'p9-song2', type: 'song', title: 'Chanson : Nous vous souhaitons un joyeux Noël', song: 'we-wish' },
+      { id: 'p9-simon', type: 'simon', title: 'Les cloches de Noël', notes: [67, 69, 71, 72, 74, 76], goal: 5 },
+      { id: 'p9-song3', type: 'song', title: 'Chanson : Douce nuit', song: 'douce-nuit' },
+    ],
+  },
+  {
+    id: 'p10',
+    name: 'Planète Dièse',
+    desc: 'Les touches noires ont un nom',
+    look: 'diese',
+    missions: [
+      {
+        id: 'p10-intro',
+        type: 'intro',
+        title: 'Les dièses',
+        slides: [
+          {
+            text: 'Bienvenue sur la planète Dièse ! Ici, on joue enfin les touches noires ! ♯',
+            mood: 'excited',
+          },
+          {
+            text: 'Une touche noire prend le nom de sa voisine blanche de gauche, avec « dièse ». Juste à droite de Fa, c’est Fa dièse !',
+            kb: { range: [C4, 72], targets: [65, 66], label: true },
+            sound: [65, 66, 67],
+          },
+          {
+            text: 'Fa dièse est un tout petit peu plus aigu que Fa. Sur la portée, on dessine un dièse ♯ devant la note.',
+            staff: { notes: [65, 66, 67], names: true },
+          },
+          {
+            text: 'Toutes les touches noires ont un nom : Do dièse, Ré dièse, Fa dièse, Sol dièse et La dièse.',
+            kb: { range: [C4, 72], targets: [61, 63, 66, 68, 70], label: true },
+            sound: [61, 63, 66, 68, 70],
+          },
+          {
+            text: 'À toi : joue Fa, puis Fa dièse, puis Sol. Ça monte tout doucement !',
+            kb: { range: [C4, 72], targets: [65, 66, 67], label: true },
+            try: { seq: [5, 6, 7], prompt: 'Fa, Fa dièse, Sol' },
+          },
+        ],
+      },
+      {
+        id: 'p10-find',
+        type: 'findkey',
+        title: 'Tous les Fa dièse !',
+        findAll: { pc: 6, help: 'Fa dièse, c’est la touche noire juste à droite de Fa.' },
+        range: [53, 79],
+        intro: 'Trouve tous les Fa dièse ! C’est la touche noire juste à droite de chaque Fa.',
+      },
+      { id: 'p10-name', type: 'namenote', title: 'Le nom des touches noires', notes: [61, 63, 66, 68, 70] },
+      { id: 'p10-play', type: 'playnote', title: 'La fusée dièse', notes: [60, 61, 62, 63, 64, 65, 66, 67] },
+      { id: 'p10-song1', type: 'song', title: 'Chanson : La gamme de Sol', song: 'gamme-sol' },
+      {
+        id: 'p10-staff',
+        type: 'playnote',
+        title: 'Lis les dièses',
+        notes: [62, 64, 66, 67, 69, 71],
+        display: 'staff',
+      },
+      { id: 'p10-song2', type: 'song', title: 'Chanson : Au clair de la lune (en Sol)', song: 'clair-sol' },
+      { id: 'p10-song3', type: 'song', title: 'Chanson : Joyeux anniversaire (en Sol)', song: 'anniversaire-sol' },
+    ],
+  },
+  {
+    id: 'p11',
+    name: 'Planète Mystère',
+    desc: 'Une surprise t’attend…',
+    look: 'mystery',
+    comingSoon: true,
+    missions: [],
   },
 ];
 

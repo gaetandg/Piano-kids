@@ -1,7 +1,7 @@
 // « Trouve la touche » : groupes de touches noires, les Do...
 import { h, wait } from '../ui.js';
 import { sfxSuccess, sfxError } from '../audio.js';
-import { pc, pick, blackGroup } from '../music.js';
+import { pc, pick, blackGroup, noteName } from '../music.js';
 import { starsFromMistakes } from './shell.js';
 
 export const config = (m) => ({ allowMode: true, kb: { range: m.range || [60, 72] } });
@@ -28,6 +28,7 @@ export default function findkey(shell, mission, finish) {
 
   // ----- Mode « trouve tous les Do » -----
   const fa = mission.findAll;
+  const faName = fa ? noteName(fa.pc + 60) : '';
   let found = new Set();
 
   function allTargets() {
@@ -41,7 +42,7 @@ export default function findkey(shell, mission, finish) {
   function renderFindAll() {
     const n = needed();
     const got = found.size;
-    big.textContent = shell.mode === 'piano' ? `Joue les ${n} Do de ton piano !` : `Trouve les ${n} Do !`;
+    big.textContent = shell.mode === 'piano' ? `Joue les ${n} ${faName} de ton piano !` : `Trouve les ${n} ${faName} !`;
     counter.innerHTML = '';
     for (let k = 0; k < n; k++) counter.append(h('span', { class: 'cdot' + (k < got ? ' on red' : '') }, k < got ? '★' : '○'));
     shell.setProgress(got / n);
@@ -77,6 +78,9 @@ export default function findkey(shell, mission, finish) {
       if (prompt.zone === 'low') return m < 60;
       if (prompt.zone === 'high') return m > 60;
     }
+    // ou une plage précise (ex. les notes tout en haut)
+    if (prompt.min != null && m < prompt.min) return false;
+    if (prompt.max != null && m > prompt.max) return false;
     return true;
   }
 
@@ -90,7 +94,7 @@ export default function findkey(shell, mission, finish) {
     if (fa) {
       if (pc(m) === fa.pc) {
         if (found.has(m)) {
-          shell.say('Celui-là, tu l’as déjà trouvé ! Cherche un autre Do.', 'think', false);
+          shell.say(`Celui-là, tu l’as déjà trouvé ! Cherche un autre ${faName}.`, 'think', false);
           return;
         }
         if (!shell.keyboard.midis().includes(m)) return;
@@ -101,14 +105,20 @@ export default function findkey(shell, mission, finish) {
         const got = found.size;
         if (got >= needed()) {
           busy = true;
-          shell.say('Tu as trouvé tous les Do ! 🎉', 'excited');
+          shell.say(`Tu as trouvé tous les ${faName} ! 🎉`, 'excited');
           setTimeout(done, 1200);
         } else shell.say(['Super !', 'Bravo !', 'Encore un autre !', 'Oui !'][got % 4], 'excited', false);
       } else {
         mistakes++;
         shell.keyboard.flash(m, 'bad');
         sfxError();
-        shell.say('Non, ce n’est pas un Do. Cherche les 2 touches noires !', 'oops', false);
+        shell.say(
+          fa.pc === 0
+            ? 'Non, ce n’est pas un Do. Cherche les 2 touches noires !'
+            : `Non, ça c’est ${noteName(m)}. ${fa.help || 'Essaie encore !'}`,
+          'oops',
+          false,
+        );
         if (mistakes % 2 === 0) shell.keyboard.setTargets(allTargets().filter((x) => !found.has(x)));
       }
       return;
@@ -116,7 +126,7 @@ export default function findkey(shell, mission, finish) {
 
     if (matches(m)) {
       busy = true;
-      groupOf(m).forEach((x) => shell.keyboard.mark(x));
+      (prompt.pcs.length > 1 ? groupOf(m) : [m]).forEach((x) => shell.keyboard.mark(x));
       shell.keyboard.flash(m, 'good');
       sfxSuccess();
       shell.say(['Bravo !', 'Super !', 'Génial !', 'Exactement !', 'Trop fort !'][round % 5], 'excited', false);
@@ -132,8 +142,11 @@ export default function findkey(shell, mission, finish) {
       shell.keyboard.flash(m, 'bad');
       sfxError();
       let msg = 'Essaie encore !';
-      if (prompt.pcs.includes(pc(m)) && prompt.zone)
-        msg = prompt.zone === 'middle' ? 'C’est un Do, mais pas celui du milieu !' : 'C’est un Do, mais pas au bon endroit !';
+      if (prompt.pcs.includes(pc(m)) && (prompt.zone || prompt.min != null || prompt.max != null))
+        msg =
+          prompt.zone === 'middle'
+            ? 'C’est un Do, mais pas celui du milieu !'
+            : `C’est un ${noteName(m)}, mais pas au bon endroit !`;
       else if (blackGroup(m) && prompt.pcs.some((p) => blackGroup(p + 60))) msg = `Ça, c’est un groupe de ${blackGroup(m)} !`;
       shell.say(msg, 'oops', false);
       if (missesThisRound >= 2) hint();
@@ -156,7 +169,7 @@ export default function findkey(shell, mission, finish) {
 
   if (fa) {
     renderFindAll();
-    shell.say(mission.intro || 'Trouve tous les Do !', 'happy');
+    shell.say(mission.intro || `Trouve tous les ${faName} !`, 'happy');
   } else {
     // on laisse le temps de lire la consigne, même sans la voix
     Promise.all([shell.say(mission.intro, 'happy'), wait(2500)]).then(() => {

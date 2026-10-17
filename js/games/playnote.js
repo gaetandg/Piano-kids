@@ -2,11 +2,11 @@
 // Options de mission : hand ('left'), exact (la bonne octave compte), display ('staff'), colors.
 import { h } from '../ui.js';
 import { sfxSuccess, sfxError } from '../audio.js';
-import { pc, noteName, noteColor, noteTextColor, pick, FINGERS_C, FINGERS_LEFT } from '../music.js';
+import { pc, noteName, noteColor, noteTextColor, pick, FINGERS_C, FINGERS_LEFT, rangeFor, isBlack } from '../music.js';
 import { staffSVG } from '../staff.js';
 import { starsFromMistakes } from './shell.js';
 
-export const config = (m) => ({ allowMode: true, kb: { range: [Math.min(...m.notes), Math.max(...m.notes, 72)] } });
+export const config = (m) => ({ allowMode: true, kb: { range: rangeFor(m.notes) } });
 
 export default function playnote(shell, mission, finish) {
   const notes = mission.notes;
@@ -36,6 +36,7 @@ export default function playnote(shell, mission, finish) {
       bubbleNote.textContent = noteName(target).toUpperCase();
       bubbleNote.style.background = noteColor(target);
       bubbleNote.style.color = noteTextColor(target);
+      bubbleNote.classList.toggle('black-note', isBlack(target));
     }
     bubbleNote.classList.remove('pop');
     void bubbleNote.offsetWidth;

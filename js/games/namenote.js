@@ -1,14 +1,14 @@
 // « Comment je m'appelle ? » : une touche s'allume (ou une note sur la portée), on choisit son nom.
 import { h } from '../ui.js';
 import { playNote, sfxSuccess, sfxError } from '../audio.js';
-import { pc, noteName, noteColor, noteTextColor, pick } from '../music.js';
+import { pc, noteName, noteColor, noteTextColor, pick, rangeFor, isBlack } from '../music.js';
 import { staffSVG } from '../staff.js';
 import { starsFromMistakes } from './shell.js';
 
 export const config = (m) => ({
   allowMode: false,
   showKeyboard: m.display !== 'staff',
-  kb: { range: [Math.min(...m.notes), Math.max(...m.notes, 72)], colors: false, interactive: false },
+  kb: { range: rangeFor(m.notes), colors: false, interactive: false },
 });
 
 export default function namenote(shell, mission, finish) {
@@ -25,7 +25,7 @@ export default function namenote(shell, mission, finish) {
   const choices = h('div', { class: 'choices' });
   const counter = h('div', { class: 'counter' });
   const staffBox = h('div', { class: 'staff-box' });
-  shell.stage.append(counter, staff ? staffBox : null, choices, replay);
+  shell.stage.append(...[counter, staff ? staffBox : null, choices, replay].filter(Boolean));
   shell.dock(replay);
 
   // un bouton par nom de note
@@ -34,6 +34,7 @@ export default function namenote(shell, mission, finish) {
     const b = h('button', { class: 'choice', onclick: () => answer(p, b) }, noteName(p + 60));
     b.style.background = noteColor(p + 60);
     b.style.color = noteTextColor(p + 60);
+    if (isBlack(p + 60)) b.classList.add('black-note');
     choices.append(b);
     return b;
   });

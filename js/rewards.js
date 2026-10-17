@@ -28,6 +28,18 @@ export const STICKERS = [
   { id: 'rainbow', e: '🌈', name: 'Arc-en-ciel' },
   { id: 'gem', e: '💎', name: 'Diamant' },
   { id: 'medal', e: '🥇', name: 'Médaille d’or' },
+  { id: 'snowman', e: '⛄', name: 'Bonhomme de neige' },
+  { id: 'tree', e: '🎄', name: 'Sapin' },
+  { id: 'gift', e: '🎁', name: 'Cadeau' },
+  { id: 'bell', e: '🔔', name: 'Clochette' },
+  { id: 'sparkles', e: '✨', name: 'Paillettes' },
+  { id: 'sled', e: '🛷', name: 'Traîneau' },
+  { id: 'deer', e: '🦌', name: 'Renne' },
+  { id: 'cookie', e: '🍪', name: 'Biscuit' },
+  { id: 'score', e: '🎼', name: 'Partition' },
+  { id: 'violin', e: '🎻', name: 'Violon' },
+  { id: 'drum', e: '🥁', name: 'Tambour' },
+  { id: 'trumpet', e: '🎺', name: 'Trompette' },
 ];
 
 // Enregistre un résultat. `key` = id de mission (ou de chanson si `song`).
