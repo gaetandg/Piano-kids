@@ -7,6 +7,7 @@ import { planetUnlocked, findPlanet } from '../curriculum.js';
 import { STICKERS, starsToNextSticker } from '../rewards.js';
 import { topBar, bottomNav } from './hub.js';
 import { noteColor, pc } from '../music.js';
+import { playMelody } from '../games/compose.js';
 
 export function songsScreen(app) {
   const p = state.currentProfile();
@@ -44,6 +45,29 @@ export function songsScreen(app) {
     );
     list.append(card);
   });
+  // les chansons inventées sur la planète Compositeur
+  const mine = (p.compositions || []).map((c, i) =>
+    h(
+      'button',
+      { class: 'song-card', onclick: () => playMelody(c.notes, { black: c.black }) },
+      h('span', { class: 'song-emoji' }, c.black ? '🌙' : '✍️'),
+      h(
+        'span',
+        { class: 'song-body' },
+        h('span', { class: 'song-name' }, `Ma chanson n° ${(p.compositions || []).length - i}`),
+        h(
+          'span',
+          { class: 'song-meta' },
+          h(
+            'span',
+            { class: 'mini-dots' },
+            c.notes.map((m) => h('i', { style: { background: noteColor(m) } })),
+          ),
+        ),
+      ),
+      h('span', { class: 'song-play' }, '▶'),
+    ),
+  );
   app.append(
     h(
       'div',
@@ -51,6 +75,8 @@ export function songsScreen(app) {
       topBar(p, { title: 'Chansons' }),
       h('p', { class: 'lead small' }, 'Choisis une chanson à jouer 🎶'),
       list,
+      mine.length ? h('h3', { class: 'section-title' }, '🎼 Mes compositions') : null,
+      mine.length ? h('div', { class: 'song-list' }, mine) : null,
     ),
     bottomNav('songs'),
   );

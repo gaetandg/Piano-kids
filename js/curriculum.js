@@ -951,6 +951,71 @@ export const PLANETS = [
     ],
   },
   {
+    id: 'p15',
+    name: 'Planète Compositeur',
+    desc: 'Invente ta propre musique',
+    look: 'compo',
+    missions: [
+      {
+        id: 'p15-intro',
+        type: 'intro',
+        title: 'Deviens compositeur',
+        slides: [
+          {
+            text: 'Bienvenue sur la planète Compositeur ! ✍️ Un compositeur, c’est quelqu’un qui invente de la musique. Aujourd’hui, c’est toi !',
+            mood: 'excited',
+          },
+          {
+            text: 'La musique, c’est comme une conversation : Cosmo joue une question… et tu réponds ! Écoute.',
+            kb: { range: [C4, 72], targets: [60, 64, 67, 65], label: true },
+            sound: [60, 64, 67, 65, 64, 62, 62, 60],
+          },
+          {
+            text: 'Une mélodie qui finit sur Do sonne comme une fin : on est rentré à la maison ! 🏠 Écoute.',
+            kb: { range: [C4, 72], targets: [60], label: true },
+            sound: [67, 65, 64, 62, 60],
+          },
+          {
+            text: 'À toi : joue 4 notes de ton choix, pour échauffer tes doigts de compositeur !',
+            kb: { range: [C4, 72] },
+            try: { any: true, count: 4, prompt: 'Joue 4 notes' },
+          },
+        ],
+      },
+      {
+        id: 'p15-answer1',
+        type: 'compose',
+        title: 'Question, réponse',
+        mode: 'answer',
+        notes: [60, 62, 64, 65, 67],
+        len: 4,
+        questions: [
+          [60, 62, 64, 65],
+          [67, 65, 64, 62],
+          [60, 64, 67, 65],
+          [64, 64, 65, 67],
+        ],
+      },
+      { id: 'p15-free1', type: 'compose', title: 'Ta première chanson', mode: 'free', notes: [60, 62, 64, 65, 67], len: 8 },
+      { id: 'p15-black', type: 'compose', title: 'La magie des touches noires', mode: 'black', len: 8 },
+      {
+        id: 'p15-answer2',
+        type: 'compose',
+        title: 'Le duo des étoiles',
+        mode: 'answer',
+        notes: WHITE_C4_C5,
+        len: 4,
+        questions: [
+          [67, 69, 71, 72],
+          [72, 71, 69, 67],
+          [64, 67, 69, 67],
+          [65, 69, 72, 71],
+        ],
+      },
+      { id: 'p15-free2', type: 'compose', title: 'Ta grande chanson', mode: 'free', notes: WHITE_C4_C5, len: 12 },
+    ],
+  },
+  {
     id: 'mystery',
     name: 'Planète Mystère',
     desc: 'Une surprise t’attend…',
