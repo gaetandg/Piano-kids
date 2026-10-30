@@ -1,7 +1,10 @@
 // « Le tambour » : les notes glissent vers la cible, on tape sur le tambour quand elles y arrivent.
 // D'abord Cosmo montre le rythme (il joue tout seul), puis c'est à l'enfant.
+// Durées en temps ; une durée négative est un silence (on ne tape pas).
+// Option notation : chaque note montre sa figure (noire, blanche, croche, soupir…).
 import { h, wait } from '../ui.js';
 import { drum, getCtx, sfxSuccess } from '../audio.js';
+import { figureSVG } from '../staff.js';
 
 export const config = () => ({ allowMode: false, showKeyboard: false });
 
@@ -11,6 +14,8 @@ const PERFECT = 0.11; // secondes
 const GOOD = 0.22;
 
 function symbol(d) {
+  if (d < 0) return { cls: 'rest', label: 'chut' };
+  if (d >= 4) return { cls: 'taa', label: 'ta-a-a-a' };
   if (d >= 2) return { cls: 'taa', label: 'ta-a' };
   if (d <= 0.5) return { cls: 'ti', label: 'ti' };
   return { cls: 'ta', label: 'ta' };
@@ -18,6 +23,7 @@ function symbol(d) {
 
 export default function rhythm(shell, mission, finish) {
   const patterns = mission.patterns;
+  const notation = !!mission.notation;
   const beat = 60 / BPM;
   let idx = 0;
   let attempt = 0;
@@ -28,7 +34,7 @@ export default function rhythm(shell, mission, finish) {
   let run = null; // passage en cours : {start, notes:[{t, el, hit}], demo}
 
   const counter = h('div', { class: 'counter' });
-  const track = h('div', { class: 'r-track' }, h('div', { class: 'r-target' }));
+  const track = h('div', { class: 'r-track' + (notation ? ' notation' : '') }, h('div', { class: 'r-target' }));
   const feedback = h('div', { class: 'r-feedback' });
   const pad = h('button', { class: 'drum-pad', 'aria-label': 'Tambour' }, '🥁');
   const area = h('div', { class: 'r-area' }, h('div', { class: 'r-left' }, track, feedback), pad);
@@ -58,24 +64,30 @@ export default function rhythm(shell, mission, finish) {
     let t = 4 * beat;
     for (const d of p) {
       const s = symbol(d);
+      const rest = d < 0;
+      const len = Math.abs(d);
       const el = h(
         'div',
         { class: 'r-note ' + s.cls },
-        d >= 2 ? h('span', { class: 'r-tail' }) : null,
-        h('span', { class: 'r-dot' }),
-        h('small', {}, s.label),
+        ...[
+          notation ? h('span', { class: 'r-fig', html: figureSVG(len, { rest }) }) : null,
+          !rest && len >= 2 ? h('span', { class: 'r-tail' }) : null,
+          h('span', { class: 'r-dot' }, rest ? '🤫' : ''),
+          h('small', {}, s.label),
+        ].filter(Boolean),
       );
       track.append(el);
-      notes.push({ t: start + t * 1000, el, dur: d, hit: false });
-      t += d * beat;
+      notes.push({ t: start + t * 1000, el, dur: len, rest, hit: false });
+      t += len * beat;
     }
+    const first = notes.find((n) => !n.count && !n.rest);
     // sons : le décompte (et tout le rythme quand Cosmo montre), calés sur l'horloge audio
     const ctx = getCtx();
     const lat = ctx.outputLatency || ctx.baseLatency || 0.04;
     for (const n of notes) {
-      if (n.count || demo) drum(Math.max(0, (n.t - performance.now()) / 1000 - lat), !n.count && n === notes[4]);
+      if (n.count || (demo && !n.rest)) drum(Math.max(0, (n.t - performance.now()) / 1000 - lat), n === first);
     }
-    return { start, notes, demo, end: start + t * 1000 + 600, stray: 0 };
+    return { start, notes, first, demo, end: start + t * 1000 + 600, stray: 0 };
   }
 
   function frame() {
@@ -87,14 +99,15 @@ export default function rhythm(shell, mission, finish) {
     for (const n of run.notes) {
       const x = x0 + ((n.t - now) / 1000) * pxPerSec;
       n.el.style.transform = `translateX(${x}px)`;
-      if (n.dur >= 2) n.el.firstChild.style.width = n.dur * beat * pxPerSec + 'px';
+      const tail = n.dur >= 2 && n.el.querySelector('.r-tail');
+      if (tail) tail.style.width = n.dur * beat * pxPerSec + 'px';
       n.el.style.opacity = x < -40 || x > w + 40 ? 0 : 1;
-      if (!n.count && !n.hit && !n.missed && now - n.t > GOOD * 1000) {
+      if (!n.count && !n.rest && !n.hit && !n.missed && now - n.t > GOOD * 1000) {
         n.missed = true;
         n.el.classList.add('miss');
         if (!run.demo) say('Raté', 'miss');
       }
-      if (run.demo && !n.count && !n.hit && now >= n.t) {
+      if (run.demo && !n.count && !n.rest && !n.hit && now >= n.t) {
         n.hit = true;
         n.el.classList.add('good');
         flashTarget();
@@ -134,7 +147,7 @@ export default function rhythm(shell, mission, finish) {
     let best = null;
     let bestD = Infinity;
     for (const n of run.notes) {
-      if (n.count || n.hit || n.missed) continue;
+      if (n.count || n.rest || n.hit || n.missed) continue;
       const d = Math.abs(at - n.t) / 1000;
       if (d < bestD) {
         bestD = d;
@@ -143,9 +156,11 @@ export default function rhythm(shell, mission, finish) {
     }
     if (!best || bestD > GOOD) {
       // coup dans le vide (pendant le rythme) : taper sans arrêt ne marche pas
-      if (at > run.notes[4].t - GOOD * 1000) {
+      if (run.first && at > run.first.t - GOOD * 1000) {
         run.stray++;
-        say('Attends que la note arrive !', 'miss');
+        // pendant un silence : on se tait !
+        const hush = run.notes.some((n) => n.rest && at >= n.t - GOOD * 1000 && at <= n.t + n.dur * beat * 1000 - GOOD * 1000);
+        say(hush ? 'Chut ! C’est un silence 🤫' : 'Attends que la note arrive !', 'miss');
       }
       return;
     }
@@ -165,7 +180,7 @@ export default function rhythm(shell, mission, finish) {
       if (alive) startRun(false);
       return;
     }
-    const notes = r.notes.filter((n) => !n.count);
+    const notes = r.notes.filter((n) => !n.count && !n.rest);
     const hits = notes.filter((n) => n.hit).length;
     const ok = hits / notes.length >= 0.75 && r.stray <= Math.max(1, notes.length / 2);
     if (ok || attempt >= 1) {

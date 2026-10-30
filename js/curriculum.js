@@ -641,6 +641,141 @@ export const PLANETS = [
     ],
   },
   {
+    id: 'p12',
+    name: 'Planète Rythme',
+    desc: 'Rondes, blanches, noires et silences',
+    look: 'rythme',
+    missions: [
+      {
+        id: 'p12-intro',
+        type: 'intro',
+        title: 'Les figures de notes',
+        slides: [
+          {
+            text: 'Bienvenue sur la planète Rythme ! 🥁 Ici, les notes n’ont pas toutes la même forme : la forme dit combien de temps on tient la note.',
+            mood: 'excited',
+          },
+          {
+            text: 'La noire est toute pleine, avec une queue. Elle dure 1 temps : ta !',
+            staff: {
+              colors: false,
+              notes: [
+                { midi: 67, dur: 1 },
+                { midi: 67, dur: 1 },
+                { midi: 67, dur: 1 },
+              ],
+              labels: ['ta', 'ta', 'ta'],
+            },
+            rhythm: [1, 1, 1],
+          },
+          {
+            text: 'La blanche est creuse. Elle dure 2 temps : ta-a !',
+            staff: {
+              colors: false,
+              notes: [
+                { midi: 67, dur: 2 },
+                { midi: 67, dur: 2 },
+              ],
+              labels: ['ta-a', 'ta-a'],
+            },
+            rhythm: [2, 2],
+          },
+          {
+            text: 'La ronde est creuse et n’a pas de queue. Elle dure 4 temps : ta-a-a-a !',
+            staff: { colors: false, notes: [{ midi: 67, dur: 4 }], labels: ['ta-a-a-a'] },
+            rhythm: [4],
+          },
+          {
+            text: 'Les croches ont un petit drapeau. Elles sont rapides, deux croches pour 1 temps : ti-ti !',
+            staff: {
+              colors: false,
+              notes: [0.5, 0.5, 0.5, 0.5].map((dur) => ({ midi: 67, dur })),
+              labels: ['ti', 'ti', 'ti', 'ti'],
+            },
+            rhythm: [0.5, 0.5, 0.5, 0.5],
+          },
+          {
+            text: 'On récapitule : la ronde dure 4 temps, la blanche 2, la noire 1 et la croche un demi.',
+            staff: {
+              colors: false,
+              notes: [4, 2, 1, 0.5].map((dur) => ({ midi: 67, dur })),
+              labels: ['ronde', 'blanche', 'noire', 'croche'],
+            },
+            rhythm: [4, 2, 1, 0.5, 0.5],
+          },
+        ],
+      },
+      {
+        id: 'p12-figures',
+        type: 'rhythm',
+        title: 'Lis les figures',
+        notation: true,
+        patterns: [[1, 1, 1, 1], [2, 2], [1, 1, 2], [4], [0.5, 0.5, 1, 2]],
+      },
+      {
+        id: 'p12-intro2',
+        type: 'intro',
+        title: 'Les silences',
+        slides: [
+          {
+            text: 'En musique, on a aussi le droit de se taire ! Un silence, c’est un moment où on ne joue pas. 🤫',
+            mood: 'excited',
+          },
+          {
+            text: 'Le soupir est un silence de 1 temps. On le dessine comme un petit éclair.',
+            staff: { colors: false, notes: [{ rest: true, dur: 1 }], labels: ['soupir'] },
+          },
+          {
+            text: 'La demi-pause dure 2 temps : c’est un petit chapeau posé sur la ligne. La pause dure 4 temps : elle est accrochée sous la ligne.',
+            staff: {
+              colors: false,
+              notes: [
+                { rest: true, dur: 2 },
+                { rest: true, dur: 4 },
+              ],
+              labels: ['demi-pause', 'pause'],
+            },
+          },
+          {
+            text: 'Écoute : ta, ta, chut, ta. Pendant le soupir, on ne joue pas !',
+            staff: {
+              colors: false,
+              notes: [
+                { midi: 67, dur: 1 },
+                { midi: 67, dur: 1 },
+                { rest: true, dur: 1 },
+                { midi: 67, dur: 1 },
+              ],
+              labels: ['ta', 'ta', 'chut', 'ta'],
+            },
+            rhythm: [1, 1, -1, 1],
+          },
+        ],
+      },
+      {
+        id: 'p12-rests',
+        type: 'rhythm',
+        title: 'Chut, un silence !',
+        notation: true,
+        patterns: [
+          [1, 1, -1, 1],
+          [1, -1, 1, -1],
+          [2, -1, 1],
+          [1, 1, -2],
+          [0.5, 0.5, 1, -1, 1],
+        ],
+      },
+      {
+        id: 'p12-concert',
+        type: 'rhythm',
+        title: 'Le grand concert du tambour',
+        notation: true,
+        patterns: [[1, 0.5, 0.5, -1, 1], [2, 1, -1], [0.5, 0.5, 0.5, 0.5, -1, 1], [1, -1, 0.5, 0.5, 1], [4], [2, -2]],
+      },
+      { id: 'p12-song', type: 'song', title: 'Partition : Frère Jacques', song: 'frere-jacques', display: 'staff' },
+    ],
+  },
+  {
     id: 'mystery',
     name: 'Planète Mystère',
     desc: 'Une surprise t’attend…',

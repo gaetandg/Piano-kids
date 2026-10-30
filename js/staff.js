@@ -30,8 +30,33 @@ function clef(g, x) {
   return `<text x="${x}" y="${g.bottom - g.gap * 1.0}" class="st-clef" font-size="${g.gap * 5.6}">${CLEF}</text>`;
 }
 
+// Un silence : pause (4 temps), demi-pause (2), soupir (1), demi-soupir (½).
+function restSvg(g, x, dur) {
+  const k = g.gap;
+  if (dur >= 4) return `<rect x="${x - k * 0.6}" y="${g.y(8)}" width="${k * 1.2}" height="${k * 0.5}" class="st-rest"/>`;
+  if (dur >= 2)
+    return `<rect x="${x - k * 0.6}" y="${g.y(6) - k * 0.5}" width="${k * 1.2}" height="${k * 0.5}" class="st-rest"/>`;
+  if (dur >= 1) {
+    const t = g.y(9);
+    return `<path d="M${x - k * 0.25} ${t} L${x + k * 0.35} ${t + k * 0.9} L${x - k * 0.15} ${t + k * 1.6} L${x + k * 0.35} ${t + k * 2.3} Q${x - k * 0.55} ${t + k * 2.0} ${x - k * 0.05} ${t + k * 3.0}" class="st-rest-line" stroke-width="${k * 0.3}"/>`;
+  }
+  const y = g.y(7);
+  return `<circle cx="${x - k * 0.25}" cy="${y}" r="${k * 0.28}" class="st-rest"/><path d="M${x - k * 0.25} ${y + k * 0.1} Q${x + k * 0.1} ${y + k * 0.25} ${x + k * 0.35} ${y - k * 0.2} L${x - k * 0.1} ${g.y(3)}" class="st-rest-line" stroke-width="${k * 0.18}"/>`;
+}
+
+// Texte sous une note (nom ou étiquette).
+function textUnder(g, x, text) {
+  return `<text x="${x}" y="${g.bottom + g.gap * 3.2}" class="st-name" font-size="${g.gap * 1.05}">${text}</text>`;
+}
+
 // Une note : tête (pleine ou creuse selon la durée), hampe, crochet, petites lignes, point.
-function noteSvg(g, x, n, { colors, names, cls = '', idx = null }) {
+// Avec n.rest, c'est un silence de n.dur temps.
+function noteSvg(g, x, n, { colors, names, label = null, cls = '', idx = null }) {
+  const open = `<g class="sn ${cls}"${idx != null ? ` data-i="${idx}"` : ''}>`;
+  if (n.rest) {
+    const r = `<circle cx="${x}" cy="${g.y(6)}" r="${g.gap * 1.25}" class="sn-halo"/>` + restSvg(g, x, n.dur || 1);
+    return open + r + (label != null ? textUnder(g, x, label) : '') + '</g>';
+  }
   const step = staffStep(n.midi);
   const y = g.y(step);
   const dur = n.dur || 1;
@@ -39,7 +64,7 @@ function noteSvg(g, x, n, { colors, names, cls = '', idx = null }) {
   const fill = colors && !isBlack(n.midi) ? noteColor(n.midi) : '#1a1a2e';
   const rx = g.gap * 0.62;
   const ry = g.gap * 0.45;
-  let s = `<g class="sn ${cls}"${idx != null ? ` data-i="${idx}"` : ''}>`;
+  let s = open;
   s += `<circle cx="${x}" cy="${y}" r="${g.gap * 1.25}" class="sn-halo"/>`;
   // petites lignes au-dessus / en dessous de la portée
   for (let st = 0; st >= step; st -= 2)
@@ -64,24 +89,25 @@ function noteSvg(g, x, n, { colors, names, cls = '', idx = null }) {
   } class="sn-head"/>`;
   if (dur === 1.5 || dur === 3 || dur === 0.75)
     s += `<circle cx="${x + rx * 1.8}" cy="${y - (step % 2 ? 0 : g.gap * 0.3)}" r="${g.gap * 0.14}" fill="${fill}"/>`;
-  if (names)
-    s += `<text x="${x}" y="${g.bottom + g.gap * 3.2}" class="st-name" font-size="${g.gap * 1.05}">${noteName(n.midi)}</text>`;
+  const text = label != null ? label : names ? noteName(n.midi) : null;
+  if (text != null) s += textUnder(g, x, text);
   s += '</g>';
   return s;
 }
 
 // Portée avec quelques notes réparties (diapos, jeux « lis la note »).
-export function staffSVG(notes, { width = 320, gap = 14, colors = true, names = false, highlight = -1 } = {}) {
+// `labels` : un texte sous chaque note à la place du nom (ex. « noire », « soupir »).
+export function staffSVG(notes, { width = 320, gap = 14, colors = true, names = false, labels = null, highlight = -1 } = {}) {
   const top = gap * 3;
   const g = geom(gap, top);
-  const h = g.bottom + gap * (names ? 4.4 : 3.2);
+  const h = g.bottom + gap * (names || labels ? 4.4 : 3.2);
   const x0 = gap * 4.6;
   const span = width - x0 - gap * 2;
   let s = `<svg viewBox="0 0 ${width} ${h}" class="staff" role="img" aria-label="portée">`;
   s += lines(g, 4, width - 4) + clef(g, gap * 0.4);
   notes.forEach((n, i) => {
     const x = x0 + (notes.length === 1 ? span / 2 : (span * (i + 0.5)) / notes.length);
-    s += noteSvg(g, x, n, { colors, names, cls: i === highlight ? 'now' : '' });
+    s += noteSvg(g, x, n, { colors, names, label: labels ? labels[i] : null, cls: i === highlight ? 'now' : '', idx: i });
   });
   return s + '</svg>';
 }
@@ -111,4 +137,12 @@ export function staffClefSVG({ gap = 12, names = false } = {}) {
   const height = g.bottom + gap * (names ? 4.4 : 3.4);
   const w = gap * 4.2;
   return `<svg viewBox="0 0 ${w} ${height}" width="${w}" height="${height}" class="staff-clef">${lines(g, 0, w)}${clef(g, gap * 0.3)}<line x1="1" y1="${g.top}" x2="1" y2="${g.bottom}" class="st-line"/></svg>`;
+}
+
+// Une figure de note (ou de silence) seule, sans portée : pour le jeu du tambour.
+export function figureSVG(dur, { rest = false, gap = 8 } = {}) {
+  const g = geom(gap, gap * 1.1);
+  const w = gap * 3.2;
+  const h = g.bottom + gap * 0.6;
+  return `<svg viewBox="0 0 ${w} ${h}" class="figure">${noteSvg(g, gap * 1.3, { midi: 69, dur, rest }, { colors: false })}</svg>`;
 }

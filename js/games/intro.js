@@ -63,6 +63,22 @@ export default function intro(shell, mission, finish) {
     shell.inputEnabled = true;
   }
 
+  // joue un rythme (durées en temps, négatives = silences) et allume chaque figure de la portée
+  async function playRhythm(durs) {
+    const beat = 60 / 84;
+    const figs = extra.querySelectorAll('.staff .sn');
+    shell.inputEnabled = false;
+    let t = 0;
+    durs.forEach((d, k) => {
+      if (d > 0) playNote(67, { when: t, dur: d * beat * 0.9 });
+      setTimeout(() => figs.forEach((f, j) => f.classList.toggle('now', j === k)), t * 1000);
+      t += Math.abs(d) * beat;
+    });
+    await wait(t * 1000 + 200);
+    figs.forEach((f) => f.classList.remove('now'));
+    shell.inputEnabled = true;
+  }
+
   function show() {
     const s = slides[i];
     clearTimeout(skipTimer);
@@ -76,16 +92,21 @@ export default function intro(shell, mission, finish) {
     if (s.img === 'hands') extra.append(h('div', { class: 'hand-art two', html: handSVG({ left: true }) + handSVG() }));
     if (s.staff) {
       const st = s.staff;
+      // une note : un numéro MIDI, ou {midi, dur} / {rest: true, dur}
+      const notes = st.notes.map((m) => (typeof m === 'number' ? { midi: m } : m));
       extra.append(
         h('div', {
           class: 'staff-box',
-          html: staffSVG(
-            st.notes.map((m) => ({ midi: m })),
-            { width: Math.min(420, Math.max(220, 120 + st.notes.length * 40)), colors: st.colors !== false, names: !!st.names },
-          ),
+          html: staffSVG(notes, {
+            width: Math.min(420, Math.max(220, 120 + notes.length * (st.labels ? 56 : 40))),
+            colors: st.colors !== false,
+            names: !!st.names,
+            labels: st.labels || null,
+          }),
         }),
       );
     }
+    if (s.rhythm) extra.append(h('button', { class: 'btn sound', onclick: () => playRhythm(s.rhythm) }, '🔊 Écouter le rythme'));
     if (s.img === 'sticker') {
       const pcs = Array.isArray(s.stickerPc) ? s.stickerPc : [s.stickerPc];
       extra.append(

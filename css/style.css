@@ -784,6 +784,17 @@ h3 {
   border-radius: 50%;
   background: repeating-radial-gradient(circle at 50% 50%, transparent 0 9%, rgba(255, 255, 255, 0.35) 9% 12%);
 }
+.planet-rythme {
+  background: radial-gradient(circle at 32% 30%, #ffd1a3, #ff7a3d 50%, #8c2a0e);
+  box-shadow:
+    inset -10px -12px 22px rgba(0, 0, 0, 0.35),
+    0 0 26px rgba(255, 122, 61, 0.5);
+}
+.planet-rythme::before {
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-linear-gradient(90deg, transparent 0 14%, rgba(255, 255, 255, 0.28) 14% 18%);
+}
 .planet-diese,
 .planet-mystery {
   container-type: size;
@@ -2380,6 +2391,34 @@ h3 {
   font-size: 13px;
   margin-top: 2px;
 }
+.r-note.rest .r-dot {
+  background: transparent;
+  border: 3px dashed rgba(255, 255, 255, 0.4);
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.r-track.notation {
+  height: 150px;
+}
+.r-track.notation .r-note {
+  margin-top: -72px;
+}
+.r-track.notation .r-count {
+  margin-top: -16px;
+}
+.r-fig {
+  margin-bottom: 4px;
+}
+.r-track.notation .r-tail {
+  top: 62px;
+}
+/* plus spécifique que la hauteur réduite à l'horizontale */
+.game.compact .r-track.notation {
+  height: 150px;
+}
 .r-note.good .r-dot {
   background: var(--green);
   box-shadow: 0 0 18px var(--green);
@@ -2472,6 +2511,22 @@ h3 {
 }
 .sn-halo {
   fill: transparent;
+}
+.st-rest {
+  fill: #1a1a2e;
+}
+.st-rest-line {
+  fill: none;
+  stroke: #1a1a2e;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.figure {
+  display: block;
+  height: 46px;
+  width: auto;
+  background: #fffdf5;
+  border-radius: 10px;
 }
 .sn.now .sn-halo {
   fill: rgba(255, 214, 10, 0.55);
