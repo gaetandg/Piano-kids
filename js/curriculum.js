@@ -602,6 +602,46 @@ export const PLANETS = [
   },
   {
     id: 'p11',
+    name: 'Planète Écho',
+    desc: 'Retrouver les notes à l’oreille',
+    look: 'echo',
+    missions: [
+      {
+        id: 'p11-intro',
+        type: 'intro',
+        title: 'Joue avec tes oreilles',
+        slides: [
+          {
+            text: 'Bienvenue sur la planète Écho ! 👂 Ici, on joue avec les oreilles : Cosmo joue une note, et toi tu la retrouves.',
+            mood: 'excited',
+          },
+          {
+            text: 'Écoute : voici Do, la note de la maison… et voici Sol, plus aiguë. Tu entends la différence ?',
+            kb: { range: [C4, 72], targets: [60, 67], label: true },
+            sound: [60, 67, 60, 67],
+          },
+          {
+            text: 'L’astuce des musiciens : compare avec le Do de la maison. Si la note est plus aiguë, elle est plus à droite sur le piano !',
+            kb: { range: [C4, 72], targets: [60], label: true },
+            sound: [60, 64, 60, 67],
+          },
+          {
+            text: 'À toi : joue Do, puis Sol, et écoute bien le son de chacune.',
+            kb: { range: [C4, 72], targets: [60, 67], label: true },
+            try: { seq: [0, 7], prompt: 'Joue Do puis Sol' },
+          },
+        ],
+      },
+      { id: 'p11-same', type: 'samediff', title: 'Pareil ou différent ?', rounds: 8 },
+      { id: 'p11-ear1', type: 'playnote', title: 'Do ou Sol ?', notes: [60, 67], ear: true, rounds: 8 },
+      { id: 'p11-ear2', type: 'playnote', title: 'Do, Mi ou Sol ?', notes: [60, 64, 67], ear: true, rounds: 8 },
+      { id: 'p11-echo1', type: 'simon', title: 'L’écho de Cosmo', notes: [60, 64, 67], goal: 4, hidden: true },
+      { id: 'p11-ear3', type: 'playnote', title: 'L’oreille d’or', notes: [60, 62, 64, 65, 67], ear: true },
+      { id: 'p11-echo2', type: 'simon', title: 'Le grand écho', notes: [60, 62, 64, 65, 67], goal: 5, hidden: true },
+    ],
+  },
+  {
+    id: 'mystery',
     name: 'Planète Mystère',
     desc: 'Une surprise t’attend…',
     look: 'mystery',

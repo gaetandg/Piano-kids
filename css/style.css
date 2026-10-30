@@ -773,6 +773,17 @@ h3 {
   border: 4px dashed #ff4757;
   transform: rotate(-18deg);
 }
+.planet-echo {
+  background: radial-gradient(circle at 32% 30%, #b9fff3, #1fc8b4 50%, #0b5e66);
+  box-shadow:
+    inset -10px -12px 22px rgba(0, 0, 0, 0.35),
+    0 0 26px rgba(31, 200, 180, 0.5);
+}
+.planet-echo::before {
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle at 50% 50%, transparent 0 9%, rgba(255, 255, 255, 0.35) 9% 12%);
+}
 .planet-diese,
 .planet-mystery {
   container-type: size;
@@ -1499,6 +1510,12 @@ h3 {
   font-size: 19px;
   font-weight: 700;
   box-shadow: 0 6px 0 rgba(0, 0, 0, 0.35);
+}
+.hl-btn.same {
+  background: linear-gradient(#2ed573, #0f9b6c);
+}
+.hl-btn.diff {
+  background: linear-gradient(#ff9f1c, #e0610a);
 }
 .hl-btn.low {
   background: linear-gradient(#8e5c3a, #5a3820);

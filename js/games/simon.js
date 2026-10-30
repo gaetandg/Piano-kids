@@ -1,4 +1,5 @@
 // « Le code des Martiens » : répéter une suite de notes qui s'allonge.
+// Option hidden : les touches ne s'allument pas, on écoute seulement (sauf après une erreur).
 import { h, wait } from '../ui.js';
 import { playNote, sfxSuccess, sfxError, sfxBigSuccess } from '../audio.js';
 import { pc, pick, noteColor, rangeFor } from '../music.js';
@@ -14,6 +15,7 @@ export default function simon(shell, mission, finish) {
   let best = 0;
   let alive = true;
   let listening = false;
+  let reveal = !mission.hidden; // montrer les touches pendant le code
 
   const ufo = h('div', { class: 'ufo' }, '🛸');
   const code = h('div', { class: 'code-dots' });
@@ -48,7 +50,7 @@ export default function simon(shell, mission, finish) {
     await wait(400);
     for (const m of seq) {
       if (!alive) return;
-      shell.keyboard.setTargets([m], { label: true });
+      if (reveal) shell.keyboard.setTargets([m], { label: true });
       playNote(m, { dur: 0.5 });
       await wait(650);
       shell.keyboard.setTargets([]);
@@ -64,8 +66,15 @@ export default function simon(shell, mission, finish) {
   async function round() {
     if (!alive) return;
     shell.setProgress((seq.length - 1) / goal);
+    reveal = !mission.hidden;
     shell.say(
-      seq.length === 1 ? 'Bip bip ! Écoute mon code secret…' : `Bip bip ! Un code de ${seq.length} notes…`,
+      mission.hidden
+        ? seq.length === 1
+          ? 'Écoute bien, sans regarder : quelle note j’ai jouée ?'
+          : `Écoute mes ${seq.length} notes…`
+        : seq.length === 1
+          ? 'Bip bip ! Écoute mon code secret…'
+          : `Bip bip ! Un code de ${seq.length} notes…`,
       'think',
       false,
     );
@@ -109,7 +118,13 @@ export default function simon(shell, mission, finish) {
         end();
         return;
       }
-      shell.say('Oups ! Écoute encore une fois…', 'oops', false);
+      // à l'oreille : après une erreur, on montre les touches pour aider
+      if (mission.hidden) reveal = true;
+      shell.say(
+        mission.hidden ? 'Oups ! Cette fois, regarde aussi les touches…' : 'Oups ! Écoute encore une fois…',
+        'oops',
+        false,
+      );
       await wait(1300);
       playSeq();
     }
