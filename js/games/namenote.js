@@ -69,7 +69,7 @@ export default function namenote(shell, mission, finish) {
       locked = true;
       btn.classList.add('right');
       sfxSuccess();
-      if (staff) staffBox.innerHTML = staffSVG([{ midi: target }], { width: 240, colors: true, names: true });
+      if (staff) staffBox.innerHTML = staffSVG([{ midi: target }], { width: 240, colors: true, names: true, clef: mission.clef });
       else {
         shell.keyboard.clearMarks('mystery');
         shell.keyboard.setTargets([target], { label: true });
@@ -95,7 +95,7 @@ export default function namenote(shell, mission, finish) {
   // la touche mystère : surlignée sans sa couleur, avec un « ? »
   function showMystery() {
     if (staff) {
-      staffBox.innerHTML = staffSVG([{ midi: target }], { width: 240, colors: false });
+      staffBox.innerHTML = staffSVG([{ midi: target }], { width: 240, colors: false, clef: mission.clef });
       return;
     }
     shell.keyboard.setTargets([]);

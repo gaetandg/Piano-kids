@@ -102,6 +102,7 @@ export default function intro(shell, mission, finish) {
             colors: st.colors !== false,
             names: !!st.names,
             labels: st.labels || null,
+            clef: st.clef,
           }),
         }),
       );

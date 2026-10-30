@@ -43,11 +43,11 @@ export default function songGame(shell, mission, finish) {
 
   let staffXs = null;
   if (staff) {
-    const st = staffTrack(notes, { colors: mission.colors !== false, gap: 11, unit: 44, lead: 70 });
+    const st = staffTrack(notes, { colors: mission.colors !== false, gap: 11, unit: 44, lead: 70, clef: mission.clef });
     track.innerHTML = st.svg;
     staffXs = st.xs;
     lane.style.height = st.height + 'px';
-    lane.insertAdjacentHTML('afterbegin', staffClefSVG({ gap: 11 }));
+    lane.insertAdjacentHTML('afterbegin', staffClefSVG({ gap: 11, clef: mission.clef }));
   }
   const bubbles = staff
     ? []

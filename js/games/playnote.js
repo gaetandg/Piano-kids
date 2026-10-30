@@ -48,7 +48,12 @@ export default function playnote(shell, mission, finish) {
 
   function showTarget(withName = false) {
     if (staff) {
-      bubbleNote.innerHTML = staffSVG([{ midi: target }], { width: 240, colors: mission.colors !== false, names: withName });
+      bubbleNote.innerHTML = staffSVG([{ midi: target }], {
+        width: 240,
+        colors: mission.colors !== false,
+        names: withName,
+        clef: mission.clef,
+      });
     } else if (ear && !withName) {
       bubbleNote.textContent = '?';
       bubbleNote.style.background = 'linear-gradient(#a55eea, #5d5cff)';

@@ -143,6 +143,28 @@ const RAW = [
       'Au clair de la lu- ne, mon a- mi Pier- rot, prê- te- moi ta plu- me pour é- crire un mot. Ma chan- delle est mor- te, je n’ai plus de feu. Ou- vre- moi ta por- te pour l’a- mour de Dieu.',
   },
   {
+    id: 'marie-gauche',
+    title: 'Marie avait un petit agneau (main gauche)',
+    emoji: '🐑',
+    planet: 'p13',
+    level: 2,
+    bpm: 100,
+    notes: '<E3 <D3 <C3 <D3 <E3 <E3 <E3:2 <D3 <D3 <D3:2 <E3 <G3 <G3:2 <E3 <D3 <C3 <D3 <E3 <E3 <E3 <E3 <D3 <D3 <E3 <D3 <C3:4',
+    lyrics: null,
+  },
+  {
+    id: 'hymne-gauche',
+    title: 'Hymne à la joie (main gauche)',
+    emoji: '🎉',
+    planet: 'p13',
+    level: 3,
+    bpm: 100,
+    notes:
+      '<E3 <E3 <F3 <G3 <G3 <F3 <E3 <D3 <C3 <C3 <D3 <E3 <E3:1.5 <D3:.5 <D3:2 ' +
+      '<E3 <E3 <F3 <G3 <G3 <F3 <E3 <D3 <C3 <C3 <D3 <E3 <D3:1.5 <C3:.5 <C3:2',
+    lyrics: null,
+  },
+  {
     id: 'mon-sapin',
     title: 'Mon beau sapin',
     emoji: '🎄',
