@@ -67,7 +67,8 @@ function noteSvg(g, x, n, { colors, names, label = null, cls = '', idx = null })
     const r = `<circle cx="${x}" cy="${g.l(4)}" r="${g.gap * 1.25}" class="sn-halo"/>` + restSvg(g, x, n.dur || 1);
     return open + r + (label != null ? textUnder(g, x, label) : '') + '</g>';
   }
-  const step = staffStep(n.midi);
+  // un bémol s'écrit sur la note du dessus (Si♭ sur la ligne du Si), un dièse sur celle du dessous
+  const step = staffStep(n.flat ? n.midi + 1 : n.midi);
   const y = g.y(step);
   const dur = n.dur || 1;
   const hollow = dur >= 2;
@@ -82,7 +83,7 @@ function noteSvg(g, x, n, { colors, names, label = null, cls = '', idx = null })
   for (let st = g.base + 10; st <= step; st += 2)
     s += `<line x1="${x - rx * 1.7}" x2="${x + rx * 1.7}" y1="${g.y(st)}" y2="${g.y(st)}" class="st-line"/>`;
   if (isBlack(n.midi))
-    s += `<text x="${x - rx * 2.6}" y="${y + g.gap * 0.45}" class="st-acc" font-size="${g.gap * 1.6}">♯</text>`;
+    s += `<text x="${x - rx * 2.6}" y="${y + g.gap * 0.45}" class="st-acc" font-size="${g.gap * 1.6}">${n.flat ? '♭' : '♯'}</text>`;
   // hampe (vers le haut sous la 3e ligne, vers le bas au-dessus)
   if (dur < 4) {
     const up = step < g.base + 4;
@@ -99,7 +100,7 @@ function noteSvg(g, x, n, { colors, names, label = null, cls = '', idx = null })
   } class="sn-head"/>`;
   if (dur === 1.5 || dur === 3 || dur === 0.75)
     s += `<circle cx="${x + rx * 1.8}" cy="${y - ((step - g.base) % 2 ? 0 : g.gap * 0.3)}" r="${g.gap * 0.14}" fill="${fill}"/>`;
-  const text = label != null ? label : names ? noteName(n.midi) : null;
+  const text = label != null ? label : names ? noteName(n.midi, n.flat) : null;
   if (text != null) s += textUnder(g, x, text);
   s += '</g>';
   return s;

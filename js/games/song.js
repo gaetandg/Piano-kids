@@ -30,6 +30,8 @@ export default function songGame(shell, mission, finish) {
   // à deux mains, l'octave compte (c'est elle qui dit quelle main joue)
   const exact = (twoHands || !!mission.exact) && shell.octaveStrict();
   const matches = (m, t) => (exact ? m === t.midi : pc(m) === pc(t.midi));
+  const flat = notes.some((n) => n.flat); // chanson écrite avec des bémols
+  const nameOf = (m) => noteName(m, flat);
   let hintHere = !staff; // sur une portée, la touche ne s'allume qu'après une erreur
 
   const lane = h('div', { class: staff ? 'lane staff-lane' : 'lane' });
@@ -58,7 +60,7 @@ export default function songGame(shell, mission, finish) {
           h(
             'div',
             { class: 'nb-note' },
-            h('span', { class: 'nb-name' }, noteName(n.midi)),
+            h('span', { class: 'nb-name' }, nameOf(n.midi)),
             n.finger ? h('span', { class: 'nb-finger' }, n.finger) : null,
           ),
           n.lyric ? h('div', { class: 'nb-lyric' }, n.lyric) : null,
@@ -106,7 +108,7 @@ export default function songGame(shell, mission, finish) {
     mark(idx, idx);
     scrollTo(idx);
     shell.setProgress(idx / notes.length);
-    if (shell.keyboard) shell.keyboard.setTargets(idx < notes.length && hintHere ? [notes[idx].midi] : [], { label: true });
+    if (shell.keyboard) shell.keyboard.setTargets(idx < notes.length && hintHere ? [notes[idx].midi] : [], { label: true, flat });
   }
 
   shell.expect = (m) => idx < notes.length && matches(m, notes[idx]);
@@ -136,15 +138,15 @@ export default function songGame(shell, mission, finish) {
         shell.say(
           twoHands
             ? `Bonne note, mais avec la main ${target.hand === 'left' ? 'gauche, plus grave' : 'droite, plus aiguë'} !`
-            : `C’est bien ${noteName(m)}, mais ${m > target.midi ? 'plus grave' : 'plus aigu'} !`,
+            : `C’est bien ${nameOf(m)}, mais ${m > target.midi ? 'plus grave' : 'plus aigu'} !`,
           'oops',
           false,
         );
       else
         shell.say(
           staff
-            ? `Ça, c’est ${noteName(m)}. Regarde bien la note sur la portée !`
-            : `Cherche ${noteName(target.midi)}, la touche qui brille !`,
+            ? `Ça, c’est ${nameOf(m)}. Regarde bien la note sur la portée !`
+            : `Cherche ${nameOf(target.midi)}, la touche qui brille !`,
           'oops',
           false,
         );
@@ -175,7 +177,7 @@ export default function songGame(shell, mission, finish) {
           playNote(n.midi, { dur: Math.max(0.25, n.dur * beat * 0.9) });
           mark(i, 0);
           scrollTo(i);
-          if (shell.keyboard) shell.keyboard.setTargets([n.midi], { label: true });
+          if (shell.keyboard) shell.keyboard.setTargets([n.midi], { label: true, flat });
         }, t * 1000),
       );
       t += n.dur * beat;

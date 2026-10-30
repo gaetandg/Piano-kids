@@ -21,6 +21,7 @@ export default function namenote(shell, mission, finish) {
   let locked = true;
 
   const staff = mission.display === 'staff';
+  const flat = !!mission.flats; // touches noires nommées en bémol
   const replay = h('button', { class: 'btn sound', onclick: () => target != null && playNote(target) }, '🔊 Réécouter');
   const choices = h('div', { class: 'choices' });
   const counter = h('div', { class: 'counter' });
@@ -31,7 +32,7 @@ export default function namenote(shell, mission, finish) {
   // un bouton par nom de note
   const names = [...new Set(notes.map((m) => pc(m)))].sort((a, b) => a - b);
   const buttons = names.map((p) => {
-    const b = h('button', { class: 'choice', onclick: () => answer(p, b) }, noteName(p + 60));
+    const b = h('button', { class: 'choice', onclick: () => answer(p, b) }, noteName(p + 60, flat));
     b.style.background = noteColor(p + 60);
     b.style.color = noteTextColor(p + 60);
     if (isBlack(p + 60)) b.classList.add('black-note');
@@ -69,12 +70,18 @@ export default function namenote(shell, mission, finish) {
       locked = true;
       btn.classList.add('right');
       sfxSuccess();
-      if (staff) staffBox.innerHTML = staffSVG([{ midi: target }], { width: 240, colors: true, names: true, clef: mission.clef });
+      if (staff)
+        staffBox.innerHTML = staffSVG([{ midi: target, flat: flat && isBlack(target) }], {
+          width: 240,
+          colors: true,
+          names: true,
+          clef: mission.clef,
+        });
       else {
         shell.keyboard.clearMarks('mystery');
         shell.keyboard.setTargets([target], { label: true });
       }
-      shell.say(`Oui ! C’est ${noteName(target)} !`, 'excited', false);
+      shell.say(`Oui ! C’est ${noteName(target, flat)} !`, 'excited', false);
       round++;
       shell.setProgress(round / rounds);
       setTimeout(nextRound, 1200);
@@ -95,7 +102,11 @@ export default function namenote(shell, mission, finish) {
   // la touche mystère : surlignée sans sa couleur, avec un « ? »
   function showMystery() {
     if (staff) {
-      staffBox.innerHTML = staffSVG([{ midi: target }], { width: 240, colors: false, clef: mission.clef });
+      staffBox.innerHTML = staffSVG([{ midi: target, flat: flat && isBlack(target) }], {
+        width: 240,
+        colors: false,
+        clef: mission.clef,
+      });
       return;
     }
     shell.keyboard.setTargets([]);

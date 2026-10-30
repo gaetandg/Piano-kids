@@ -1,6 +1,6 @@
 // « La fusée » : une note est affichée (son nom, ou sur une portée), l'enfant la joue.
 // Options de mission : hand ('left'), exact (la bonne octave compte), display ('staff'), colors,
-// ear (la note est seulement jouée : on la retrouve à l'oreille).
+// ear (la note est seulement jouée : on la retrouve à l'oreille), flats (touches noires en bémol).
 import { h, wait } from '../ui.js';
 import { playNote, sfxSuccess, sfxError } from '../audio.js';
 import { pc, noteName, noteColor, noteTextColor, pick, FINGERS_C, FINGERS_LEFT, rangeFor, isBlack } from '../music.js';
@@ -24,6 +24,8 @@ export default function playnote(shell, mission, finish) {
   const exact = !!mission.exact && shell.octaveStrict();
   const fingers = left ? FINGERS_LEFT : FINGERS_C;
   const ear = !!mission.ear;
+  const flat = !!mission.flats;
+  const nm = (m) => noteName(m, flat);
   const matches = (m) => (exact ? m === target : pc(m) === pc(target));
 
   const bubbleNote = h('div', { class: staff ? 'staff-box' : 'note-bubble' });
@@ -48,7 +50,7 @@ export default function playnote(shell, mission, finish) {
 
   function showTarget(withName = false) {
     if (staff) {
-      bubbleNote.innerHTML = staffSVG([{ midi: target }], {
+      bubbleNote.innerHTML = staffSVG([{ midi: target, flat: flat && isBlack(target) }], {
         width: 240,
         colors: mission.colors !== false,
         names: withName,
@@ -60,7 +62,7 @@ export default function playnote(shell, mission, finish) {
       bubbleNote.style.color = '#fff';
       bubbleNote.classList.remove('black-note');
     } else {
-      bubbleNote.textContent = noteName(target).toUpperCase();
+      bubbleNote.textContent = nm(target).toUpperCase();
       bubbleNote.style.background = noteColor(target);
       bubbleNote.style.color = noteTextColor(target);
       bubbleNote.classList.toggle('black-note', isBlack(target));
@@ -74,7 +76,7 @@ export default function playnote(shell, mission, finish) {
   }
 
   function hint() {
-    shell.keyboard.setTargets([target], { label: true });
+    shell.keyboard.setTargets([target], { label: true, flat });
     if (staff || ear) showTarget(true);
   }
 
@@ -100,7 +102,7 @@ export default function playnote(shell, mission, finish) {
       playTarget();
     } else if (staff)
       shell.say(round === 0 ? 'Quelle est cette note ? Joue-la sur le piano !' : 'Et celle-ci ?', 'think', round === 0);
-    else shell.say(round === 0 ? `Joue la note ${noteName(target)} !` : `${noteName(target)} !`, 'happy', true);
+    else shell.say(round === 0 ? `Joue la note ${nm(target)} !` : `${nm(target)} !`, 'happy', true);
     busy = false;
     clearTimeout(hintTimer);
     // à l'oreille : on rejoue la note plutôt que de montrer la touche
@@ -119,7 +121,7 @@ export default function playnote(shell, mission, finish) {
       shell.setProgress(round / rounds);
       if (ear) {
         showTarget(true);
-        shell.say(`Bravo, c’était ${noteName(target)} ! 👂`, 'excited', false);
+        shell.say(`Bravo, c’était ${nm(target)} ! 👂`, 'excited', false);
       } else shell.say(['Bravo !', 'Super !', 'Oui !', 'Génial !', 'Parfait !'][round % 5], 'excited', false);
       setTimeout(nextRound, ear ? 1300 : 900);
     } else {
@@ -129,22 +131,20 @@ export default function playnote(shell, mission, finish) {
       sfxError();
       if (pc(m) === pc(target))
         shell.say(
-          `C’est bien ${noteName(m)}, mais ${m > target ? 'plus grave' : 'plus aigu'}${left ? ' : avec ta main gauche, en bas !' : ' !'}`,
+          `C’est bien ${nm(m)}, mais ${m > target ? 'plus grave' : 'plus aigu'}${left ? ' : avec ta main gauche, en bas !' : ' !'}`,
           'oops',
           false,
         );
       else if (ear) {
         shell.say(
-          `Ça, c’est ${noteName(m)}. ${missRound >= 2 ? 'Regarde, c’est cette touche !' : `Ma note est plus ${target > m ? 'aiguë' : 'grave'}. Écoute encore…`}`,
+          `Ça, c’est ${nm(m)}. ${missRound >= 2 ? 'Regarde, c’est cette touche !' : `Ma note est plus ${target > m ? 'aiguë' : 'grave'}. Écoute encore…`}`,
           'oops',
           false,
         );
         setTimeout(playTarget, 700);
       } else
         shell.say(
-          staff
-            ? `Ça, c’est ${noteName(m)}. Regarde bien la portée !`
-            : `Ça, c’est ${noteName(m)}. Cherche ${noteName(target)} !`,
+          staff ? `Ça, c’est ${nm(m)}. Regarde bien la portée !` : `Ça, c’est ${nm(m)}. Cherche ${nm(target)} !`,
           'oops',
           false,
         );

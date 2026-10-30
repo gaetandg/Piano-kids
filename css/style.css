@@ -796,9 +796,29 @@ h3 {
   background: repeating-linear-gradient(90deg, transparent 0 14%, rgba(255, 255, 255, 0.28) 14% 18%);
 }
 .planet-diese,
+.planet-bemol,
 .planet-cledefa,
 .planet-mystery {
   container-type: size;
+}
+.planet-bemol {
+  background: radial-gradient(circle at 32% 30%, #e3c8ff, #8a4fd8 50%, #35106e);
+  box-shadow:
+    inset -10px -12px 22px rgba(0, 0, 0, 0.4),
+    0 0 26px rgba(165, 94, 234, 0.5);
+}
+.planet-bemol::before {
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  content: '♭';
+  font-family: 'Noto Music', serif;
+  font-size: 44px;
+  font-size: 58cqh;
+  line-height: 1;
+  color: #fffdf5;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 .planet-cledefa {
   background: radial-gradient(circle at 32% 30%, #a8f0c6, #23a26b 50%, #0a4a33);

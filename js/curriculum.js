@@ -879,6 +879,78 @@ export const PLANETS = [
     ],
   },
   {
+    id: 'p14',
+    name: 'Planète Bémol',
+    desc: 'Si bémol et les chansons en Fa',
+    look: 'bemol',
+    missions: [
+      {
+        id: 'p14-intro',
+        type: 'intro',
+        title: 'Le bémol',
+        slides: [
+          {
+            text: 'Bienvenue sur la planète Bémol ! ♭ Tu connais déjà le dièse. Voici un autre mot magique des musiciens : bémol !',
+            mood: 'excited',
+          },
+          {
+            text: 'Bémol veut dire « un tout petit peu plus grave ». La touche noire juste à gauche de Si, c’est Si bémol !',
+            kb: { range: [C4, 72], targets: [70, 71], label: true, flat: true },
+            sound: [71, 70],
+          },
+          {
+            text: 'Sur la portée, le bémol ressemble à un petit b. On le dessine devant la note : Si bémol est sur la ligne du Si.',
+            staff: { notes: [71, { midi: 70, flat: true }], names: true },
+          },
+          {
+            text: 'Surprise : Si bémol et La dièse, c’est la même touche noire ! Une seule touche, deux noms, comme un surnom. 😄',
+            staff: { notes: [70, { midi: 70, flat: true }], names: true },
+            kb: { range: [C4, 72], targets: [70], label: true, flat: true },
+            sound: [70],
+          },
+          {
+            text: 'Toutes les touches noires ont aussi un nom en bémol : Ré bémol, Mi bémol, Sol bémol, La bémol et Si bémol.',
+            kb: { range: [C4, 72], targets: [61, 63, 66, 68, 70], label: true, flat: true },
+            sound: [61, 63, 66, 68, 70],
+          },
+          {
+            text: 'À toi : joue Do, Si bémol, puis La. Ça descend tout doucement !',
+            kb: { range: [C4, 72], targets: [72, 70, 69], label: true, flat: true },
+            try: { seq: [0, 10, 9], prompt: 'Do, Si bémol, La', flat: true },
+          },
+        ],
+      },
+      {
+        id: 'p14-find',
+        type: 'findkey',
+        title: 'Tous les Si bémol !',
+        findAll: { pc: 10, flat: true, help: 'Si bémol, c’est la touche noire juste à gauche de Si.' },
+        range: [53, 79],
+        intro: 'Trouve tous les Si bémol ! C’est la touche noire juste à gauche de chaque Si.',
+      },
+      { id: 'p14-name', type: 'namenote', title: 'Les noms en bémol', notes: [61, 63, 66, 68, 70], flats: true },
+      { id: 'p14-play', type: 'playnote', title: 'La fusée en Fa', notes: [65, 67, 69, 70, 72, 74], flats: true },
+      { id: 'p14-song1', type: 'song', title: 'Chanson : La gamme de Fa', song: 'gamme-fa' },
+      {
+        id: 'p14-staff',
+        type: 'playnote',
+        title: 'Lis les bémols',
+        notes: [65, 67, 69, 70, 72],
+        display: 'staff',
+        flats: true,
+      },
+      { id: 'p14-song2', type: 'song', title: 'Chanson : Ah ! vous dirai-je, maman (en Fa)', song: 'maman-fa' },
+      { id: 'p14-song3', type: 'song', title: 'Chanson : Frère Jacques (en Fa)', song: 'frere-fa' },
+      {
+        id: 'p14-song4',
+        type: 'song',
+        title: 'Partition : Hymne à la joie (en Fa)',
+        song: 'hymne-fa',
+        display: 'staff',
+      },
+    ],
+  },
+  {
     id: 'mystery',
     name: 'Planète Mystère',
     desc: 'Une surprise t’attend…',

@@ -133,7 +133,8 @@ export class Keyboard {
   }
 
   // Touches cibles (clignotent doucement dans leur couleur).
-  setTargets(midis = [], { label = false } = {}) {
+  // `flat` : nommer les touches noires en bémol (Si♭) plutôt qu'en dièse (La♯)
+  setTargets(midis = [], { label = false, flat = false } = {}) {
     for (const [m, k] of this.keys) {
       k.classList.remove('target');
       k.style.removeProperty('--tc');
@@ -145,7 +146,7 @@ export class Keyboard {
       if (!k) continue;
       k.classList.add('target');
       k.style.setProperty('--tc', isBlack(m) ? '#ffd60a' : noteColor(m));
-      if (label) k.append(h('span', { class: 'tlabel' }, noteName(m)));
+      if (label) k.append(h('span', { class: 'tlabel' }, noteName(m, flat)));
     }
   }
 

@@ -50,7 +50,7 @@ export default function intro(shell, mission, finish) {
     const s = slides[i];
     const kb = s.kb || { range: 'piano' };
     shell.setKeyboard({ range: kb.range || 'piano', names: kb.names || 'none' });
-    shell.keyboard.setTargets(resolveTargets(kb), { label: !!kb.label });
+    shell.keyboard.setTargets(resolveTargets(kb), { label: !!kb.label, flat: !!kb.flat });
   }
 
   async function playSound(notes) {
@@ -162,7 +162,7 @@ export default function intro(shell, mission, finish) {
       let color = null;
       let done = k < t.pos;
       if (t.seq) {
-        label = noteName(t.seq[k] + 60);
+        label = noteName(t.seq[k] + 60, !!t.flat);
         color = noteColor(t.seq[k] + 60);
       }
       if (t.chord) {
@@ -202,7 +202,7 @@ export default function intro(shell, mission, finish) {
       t.pos++;
       if (t.any) {
         const intro = shell.mode === 'piano' ? 'Je t’ai entendu !' : 'Bravo !';
-        shell.say(`${intro} C’était un ${noteName(m)}.`, 'excited', t.pos >= t.count);
+        shell.say(`${intro} C’était un ${noteName(m, !!t.flat)}.`, 'excited', t.pos >= t.count);
       }
       renderTry();
       if (t.pos >= t.count) {
@@ -218,14 +218,14 @@ export default function intro(shell, mission, finish) {
     } else {
       shell.keyboard.flash(m, 'bad');
       sfxError();
-      if (!t.chord || !shell.acceptChords) shell.say(`Oups, ça c’est ${noteName(m)}. Essaie encore !`, 'oops');
+      if (!t.chord || !shell.acceptChords) shell.say(`Oups, ça c’est ${noteName(m, !!t.flat)}. Essaie encore !`, 'oops');
     }
   };
 
   shell.onRefresh = () => {
     if (alive) {
       const s = slides[i];
-      shell.keyboard.setTargets(resolveTargets(s.kb), { label: !!(s.kb && s.kb.label) });
+      shell.keyboard.setTargets(resolveTargets(s.kb), { label: !!(s.kb && s.kb.label), flat: !!(s.kb && s.kb.flat) });
       if (tryState) renderTry();
     }
   };

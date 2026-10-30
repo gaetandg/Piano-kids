@@ -2,6 +2,8 @@
 // Convention : numéros MIDI (60 = Do du milieu = C4).
 
 export const NOTE_NAMES = ['Do', 'Do♯', 'Ré', 'Ré♯', 'Mi', 'Fa', 'Fa♯', 'Sol', 'Sol♯', 'La', 'La♯', 'Si'];
+// Les mêmes touches noires écrites en bémol (Si♭ = La♯).
+export const FLAT_NAMES = ['Do', 'Ré♭', 'Ré', 'Mi♭', 'Mi', 'Fa', 'Sol♭', 'Sol', 'La♭', 'La', 'Si♭', 'Si'];
 
 // Couleurs des gommettes (touches blanches).
 export const NOTE_COLORS = {
@@ -30,7 +32,7 @@ const LETTERS = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 
 export const pc = (midi) => ((midi % 12) + 12) % 12;
 export const isBlack = (midi) => BLACK_PCS.includes(pc(midi));
-export const noteName = (midi) => NOTE_NAMES[pc(midi)];
+export const noteName = (midi, flat = false) => (flat ? FLAT_NAMES : NOTE_NAMES)[pc(midi)];
 export const octaveOf = (midi) => Math.floor(midi / 12) - 1;
 export const midiToFreq = (m) => 440 * Math.pow(2, (m - 69) / 12);
 export const freqToMidi = (f) => 69 + 12 * Math.log2(f / 440);

@@ -143,6 +143,52 @@ const RAW = [
       'Au clair de la lu- ne, mon a- mi Pier- rot, prê- te- moi ta plu- me pour é- crire un mot. Ma chan- delle est mor- te, je n’ai plus de feu. Ou- vre- moi ta por- te pour l’a- mour de Dieu.',
   },
   {
+    id: 'gamme-fa',
+    title: 'La gamme de Fa (avec Si♭)',
+    emoji: '🪜',
+    planet: 'p14',
+    level: 3,
+    bpm: 90,
+    notes: 'F4 G4 A4 Bb4 C5 D5 E5 F5:2 F5 E5 D5 C5 Bb4 A4 G4 F4:2',
+    lyrics: null,
+  },
+  {
+    id: 'maman-fa',
+    title: 'Ah ! vous dirai-je, maman (en Fa, avec Si♭)',
+    emoji: '⭐',
+    planet: 'p14',
+    level: 3,
+    bpm: 100,
+    notes:
+      'F4 F4 C5 C5 D5 D5 C5:2 Bb4 Bb4 A4 A4 G4 G4 F4:2 C5 C5 Bb4 Bb4 A4 A4 G4:2 C5 C5 Bb4 Bb4 A4 A4 G4:2 ' +
+      'F4 F4 C5 C5 D5 D5 C5:2 Bb4 Bb4 A4 A4 G4 G4 F4:2',
+    lyrics:
+      'Ah ! vous di- rai- je, ma- man, ce qui cau- se mon tour- ment. Pa- pa veut que je rai- sonne com- m’u- ne gran- de per- sonne. Moi, je dis que les bon- bons va- lent mieux que la rai- son.',
+  },
+  {
+    id: 'frere-fa',
+    title: 'Frère Jacques (en Fa, avec Si♭)',
+    emoji: '🔔',
+    planet: 'p14',
+    level: 3,
+    bpm: 100,
+    notes:
+      'F4 G4 A4 F4 F4 G4 A4 F4 A4 Bb4 C5:2 A4 Bb4 C5:2 C5:.5 D5:.5 C5:.5 Bb4:.5 A4 F4 C5:.5 D5:.5 C5:.5 Bb4:.5 A4 F4 ' +
+      'F4 C4 F4:2 F4 C4 F4:2',
+    lyrics:
+      'Frè- re Jac- ques, frè- re Jac- ques, dor- mez- vous, dor- mez- vous ? Son- nez les ma- ti- nes, son- nez les ma- ti- nes, ding, dang, dong, ding, dang, dong !',
+  },
+  {
+    id: 'hymne-fa',
+    title: 'Hymne à la joie (en Fa, avec Si♭)',
+    emoji: '🎉',
+    planet: 'p14',
+    level: 3,
+    bpm: 100,
+    notes: 'A4 A4 Bb4 C5 C5 Bb4 A4 G4 F4 F4 G4 A4 A4:1.5 G4:.5 G4:2 A4 A4 Bb4 C5 C5 Bb4 A4 G4 F4 F4 G4 A4 G4:1.5 F4:.5 F4:2',
+    lyrics: null,
+  },
+  {
     id: 'marie-gauche',
     title: 'Marie avait un petit agneau (main gauche)',
     emoji: '🐑',
@@ -253,7 +299,8 @@ function build(raw) {
     .map((tok) => {
       const left = tok.startsWith('<');
       const [n, d] = (left ? tok.slice(1) : tok).split(':');
-      return { midi: parseNote(n), dur: d ? parseFloat(d) : 1, hand: left ? 'left' : 'right' };
+      // « Bb4 » : touche noire écrite en bémol (Si♭)
+      return { midi: parseNote(n), dur: d ? parseFloat(d) : 1, hand: left ? 'left' : 'right', flat: /^[A-G]b/.test(n) };
     });
   if (raw.lyrics) {
     const syl = syllables(raw.lyrics);

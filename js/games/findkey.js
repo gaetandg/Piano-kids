@@ -28,7 +28,7 @@ export default function findkey(shell, mission, finish) {
 
   // ----- Mode « trouve tous les Do » -----
   const fa = mission.findAll;
-  const faName = fa ? noteName(fa.pc + 60) : '';
+  const faName = fa ? noteName(fa.pc + 60, !!fa.flat) : '';
   let found = new Set();
 
   function allTargets() {
@@ -115,7 +115,7 @@ export default function findkey(shell, mission, finish) {
         shell.say(
           fa.pc === 0
             ? 'Non, ce n’est pas un Do. Cherche les 2 touches noires !'
-            : `Non, ça c’est ${noteName(m)}. ${fa.help || 'Essaie encore !'}`,
+            : `Non, ça c’est ${noteName(m, !!fa.flat)}. ${fa.help || 'Essaie encore !'}`,
           'oops',
           false,
         );
