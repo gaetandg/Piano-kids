@@ -21,8 +21,9 @@ import * as song from '../games/song.js';
 import * as samediff from '../games/samediff.js';
 import * as compose from '../games/compose.js';
 import * as rain from '../games/rain.js';
+import * as listen from '../games/listen.js';
 
-const GAMES = { intro, findkey, namenote, playnote, highlow, simon, rhythm, song, samediff, compose, rain };
+const GAMES = { intro, findkey, namenote, playnote, highlow, simon, rhythm, song, samediff, compose, rain, listen };
 
 export function gameScreen(app, params) {
   const p = state.currentProfile();

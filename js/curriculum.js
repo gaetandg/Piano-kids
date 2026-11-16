@@ -1016,6 +1016,89 @@ export const PLANETS = [
     ],
   },
   {
+    id: 'p16',
+    name: 'Planète des Émotions',
+    desc: 'Joyeux ou triste, fort ou doux, vite ou lent',
+    look: 'emotions',
+    missions: [
+      {
+        id: 'p16-intro',
+        type: 'intro',
+        title: 'Joyeux ou triste',
+        slides: [
+          {
+            text: 'Bienvenue sur la planète des Émotions ! 🎭 La musique peut être joyeuse, triste, calme ou pleine d’énergie.',
+            mood: 'excited',
+          },
+          {
+            text: 'Écoute : Do, Mi, Sol. Ça sonne joyeux ! C’est un accord majeur. 😊',
+            kb: { range: [C4, 72], targets: [60, 64, 67], label: true },
+            sound: [60, 64, 67, 72],
+          },
+          {
+            text: 'Maintenant Do, Mi bémol, Sol : ça sonne triste ! C’est un accord mineur. 😢',
+            kb: { range: [C4, 72], targets: [60, 63, 67], label: true, flat: true },
+            sound: [60, 63, 67, 72],
+          },
+          {
+            text: 'Une seule note change : Mi devient Mi bémol, et toute la musique devient triste. Magique !',
+            kb: { range: [C4, 72], targets: [64, 63], label: true, flat: true },
+            sound: [60, 64, 67, 60, 63, 67],
+          },
+          {
+            text: 'À toi : joue l’accord triste, une note après l’autre : Do, Mi bémol, Sol.',
+            kb: { range: [C4, 72], targets: [60, 63, 67], label: true, flat: true },
+            try: { seq: [0, 3, 7], prompt: 'Do, Mi bémol, Sol', flat: true },
+          },
+        ],
+      },
+      { id: 'p16-mood', type: 'listen', title: 'Joyeux ou triste ?', kinds: ['mood'], rounds: 8 },
+      { id: 'p16-song1', type: 'song', title: 'Chanson : Frère Jacques triste', song: 'frere-mineur' },
+      {
+        id: 'p16-intro2',
+        type: 'intro',
+        title: 'Fort, doux, vite, lent',
+        slides: [
+          {
+            text: 'Les musiciens jouent plus fort ou plus doux. En italien, fort se dit « forte » 🦁 et doux se dit « piano » 🐭… comme ton instrument !',
+            mood: 'excited',
+          },
+          {
+            text: 'Écoute : la musique devient de plus en plus forte… c’est un crescendo ! 🦁',
+            demo: { kind: 'volume', answer: 'loud' },
+          },
+          {
+            text: 'Et là, de plus en plus douce, comme si elle s’endormait : c’est un decrescendo. 🐭',
+            demo: { kind: 'volume', answer: 'soft' },
+          },
+          {
+            text: 'La musique peut aussi aller vite, comme un lapin : allegro ! 🐇',
+            demo: { kind: 'tempo', answer: 'fast' },
+          },
+          {
+            text: '… ou lentement, comme une tortue : lento. 🐢',
+            demo: { kind: 'tempo', answer: 'slow' },
+          },
+          {
+            text: 'À toi : joue Do, Ré, Mi, Fa, Sol tout doucement, comme une souris. Chut ! 🐭',
+            kb: { range: [C4, 72], targets: [60, 62, 64, 65, 67], label: true },
+            try: { seq: [0, 2, 4, 5, 7], prompt: 'Do Ré Mi Fa Sol, tout doux' },
+          },
+        ],
+      },
+      { id: 'p16-volume', type: 'listen', title: 'Crescendo ou decrescendo ?', kinds: ['volume'], rounds: 6 },
+      { id: 'p16-tempo', type: 'listen', title: 'Vite ou lent ?', kinds: ['tempo'], rounds: 6 },
+      { id: 'p16-song2', type: 'song', title: 'Chanson : Au clair de la lune (en mineur)', song: 'clair-mineur' },
+      {
+        id: 'p16-mix',
+        type: 'listen',
+        title: 'Le grand quiz des émotions',
+        kinds: ['mood', 'volume', 'tempo'],
+        rounds: 9,
+      },
+    ],
+  },
+  {
     id: 'mystery',
     name: 'Planète Mystère',
     desc: 'Une surprise t’attend…',

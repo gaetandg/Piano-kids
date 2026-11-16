@@ -817,6 +817,21 @@ h3 {
   border: 3px solid rgba(255, 255, 255, 0.75);
   transform: rotate(14deg);
 }
+.planet-emotions {
+  background: linear-gradient(135deg, #ffd60a 0%, #ff9f1c 45%, #5d7bd8 55%, #2f3f8f 100%);
+  box-shadow:
+    inset -10px -12px 22px rgba(0, 0, 0, 0.35),
+    0 0 26px rgba(255, 214, 10, 0.4);
+}
+.planet-emotions::before {
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  content: '🎭';
+  font-size: 40px;
+  border-radius: 50%;
+}
 .planet-diese,
 .planet-bemol,
 .planet-cledefa,
@@ -1589,6 +1604,25 @@ h3 {
 }
 .hl-btn.diff {
   background: linear-gradient(#ff9f1c, #e0610a);
+}
+.hl-btn.joy {
+  background: linear-gradient(#ffd60a, #ff9f1c);
+  color: #1a1a2e;
+}
+.hl-btn.sad {
+  background: linear-gradient(#5d7bd8, #2f3f8f);
+}
+.hl-btn.loud {
+  background: linear-gradient(#ff6b6b, #c0392b);
+}
+.hl-btn.soft {
+  background: linear-gradient(#c8b8ff, #8a7fd0);
+}
+.hl-btn.fast {
+  background: linear-gradient(#2ed573, #0f9b6c);
+}
+.hl-btn.slow {
+  background: linear-gradient(#a3866a, #6b4f35);
 }
 .hl-btn.low {
   background: linear-gradient(#8e5c3a, #5a3820);

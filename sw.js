@@ -1,5 +1,5 @@
 // Service worker : l'app marche hors connexion, mais prend toujours la dernière version en ligne.
-const CACHE = 'piano-cosmos-v0.12.0';
+const CACHE = 'piano-cosmos-v0.13.0';
 const CORE = [
   './',
   './index.html',
@@ -44,6 +44,7 @@ const CORE = [
   './js/games/samediff.js',
   './js/games/compose.js',
   './js/games/rain.js',
+  './js/games/listen.js',
 ];
 
 self.addEventListener('install', (e) => {

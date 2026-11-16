@@ -209,7 +209,12 @@ const WHITE = [0, 2, 4, 5, 7, 9, 11];
             if (m.type === 'highlow') sel = hs.length >= 2 && hs[1] > hs[0] ? '.hl-btn.high' : '.hl-btn.low';
             else if (m.type === 'samediff') sel = hs.length >= 2 && hs[0] === hs[1] ? '.hl-btn.same' : '.hl-btn.diff';
             else sel = await page.evaluate(() => '.hl-btn.' + document.querySelector('.listen-game')._answer);
-            await page.click(sel);
+            // le jeu n'accepte la réponse qu'une fois l'exemple fini : on réessaie
+            for (let k = 0; k < 30; k++) {
+              await page.click(sel);
+              await page.waitForTimeout(300);
+              if (/^(Oui|Non)/.test(await bubbleText())) break;
+            }
           });
         } else if (m.type === 'simon') {
           for (let r = 0; r < 600 && !(await done()); r++) {

@@ -164,6 +164,29 @@ const RAW = [
       'Au clair de la lu- ne, mon a- mi Pier- rot, prê- te- moi ta plu- me pour é- crire un mot. Ma chan- delle est mor- te, je n’ai plus de feu. Ou- vre- moi ta por- te pour l’a- mour de Dieu.',
   },
   {
+    id: 'frere-mineur',
+    title: 'Frère Jacques triste (en mineur)',
+    emoji: '🌧️',
+    planet: 'p16',
+    level: 3,
+    bpm: 80,
+    notes:
+      'C4 D4 Eb4 C4 C4 D4 Eb4 C4 Eb4 F4 G4:2 Eb4 F4 G4:2 G4:.5 Ab4:.5 G4:.5 F4:.5 Eb4 C4 G4:.5 Ab4:.5 G4:.5 F4:.5 Eb4 C4 ' +
+      'C4 G3 C4:2 C4 G3 C4:2',
+    lyrics:
+      'Frè- re Jac- ques, frè- re Jac- ques, dor- mez- vous, dor- mez- vous ? Son- nez les ma- ti- nes, son- nez les ma- ti- nes, ding, dang, dong, ding, dang, dong !',
+  },
+  {
+    id: 'clair-mineur',
+    title: 'Au clair de la lune (en mineur)',
+    emoji: '🌑',
+    planet: 'p16',
+    level: 2,
+    bpm: 80,
+    notes: 'C4 C4 C4 D4 Eb4:2 D4:2 C4 Eb4 D4 D4 C4:4 C4 C4 C4 D4 Eb4:2 D4:2 C4 Eb4 D4 D4 C4:4',
+    lyrics: 'Au clair de la lu- ne, mon a- mi Pier- rot, prê- te- moi ta plu- me pour é- crire un mot.',
+  },
+  {
     id: 'gamme-fa',
     title: 'La gamme de Fa (avec Si♭)',
     emoji: '🪜',

@@ -4,6 +4,7 @@ import { playNote, sfxSuccess, sfxError } from '../audio.js';
 import { pc, noteName, isBlack, noteColor, STICKER_NAMES } from '../music.js';
 import { handSVG } from './art.js';
 import { staffSVG } from '../staff.js';
+import { playExample } from './listen.js';
 
 export const config = () => ({ allowMode: true, kb: { range: 'piano' } });
 
@@ -79,6 +80,13 @@ export default function intro(shell, mission, finish) {
     shell.inputEnabled = true;
   }
 
+  async function playDemo(d) {
+    shell.inputEnabled = false;
+    const { secs } = playExample(d.kind, d.answer, { root: 60, motif: [0, 4, 7, 12, 7, 4, 0] });
+    await wait(secs * 1000 + 200);
+    shell.inputEnabled = true;
+  }
+
   function show() {
     const s = slides[i];
     clearTimeout(skipTimer);
@@ -108,6 +116,8 @@ export default function intro(shell, mission, finish) {
       );
     }
     if (s.rhythm) extra.append(h('button', { class: 'btn sound', onclick: () => playRhythm(s.rhythm) }, '🔊 Écouter le rythme'));
+    // exemple joué fort/doux, vite/lent… (planète des Émotions)
+    if (s.demo) extra.append(h('button', { class: 'btn sound', onclick: () => playDemo(s.demo) }, '🔊 Écouter'));
     if (s.img === 'sticker') {
       const pcs = Array.isArray(s.stickerPc) ? s.stickerPc : [s.stickerPc];
       extra.append(
