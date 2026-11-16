@@ -97,11 +97,12 @@ export function deleteProfile(id) {
 }
 
 export function resetProgress(id) {
-  updateProfile(id, { stars: {}, done: {}, songStars: {}, stickers: [] });
+  updateProfile(id, { stars: {}, done: {}, songStars: {}, stickers: [], rain: {}, rainStars: {} });
 }
 
 export function totalStars(p) {
   const a = Object.values(p.stars || {}).reduce((s, v) => s + v, 0);
   const b = Object.values(p.songStars || {}).reduce((s, v) => s + v, 0);
-  return a + b;
+  const c = Object.values(p.rainStars || {}).reduce((s, v) => s + v, 0); // Pluie de notes
+  return a + b + c;
 }

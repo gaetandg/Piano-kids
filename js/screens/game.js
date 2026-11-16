@@ -4,7 +4,7 @@ import * as state from '../state.js';
 import { go, back } from '../router.js';
 import { findMission, nextMission, missionUnlocked } from '../curriculum.js';
 import { getSong } from '../songs.js';
-import { recordResult } from '../rewards.js';
+import { recordResult, recordRain } from '../rewards.js';
 import { createShell } from '../games/shell.js';
 import { sfxStar, sfxBigSuccess, sfxWhoosh } from '../audio.js';
 import { say } from '../speech.js';
@@ -20,8 +20,9 @@ import * as rhythm from '../games/rhythm.js';
 import * as song from '../games/song.js';
 import * as samediff from '../games/samediff.js';
 import * as compose from '../games/compose.js';
+import * as rain from '../games/rain.js';
 
-const GAMES = { intro, findkey, namenote, playnote, highlow, simon, rhythm, song, samediff, compose };
+const GAMES = { intro, findkey, namenote, playnote, highlow, simon, rhythm, song, samediff, compose, rain };
 
 export function gameScreen(app, params) {
   const p = state.currentProfile();
@@ -29,7 +30,14 @@ export function gameScreen(app, params) {
 
   let mission;
   let isLibrarySong = false;
-  if (params.song) {
+  const isRain = !!params.rain;
+  if (isRain) {
+    // Pluie de notes
+    const s = rain.rainSong(params.rain);
+    if (!s) return go('rain', {}, { replace: true });
+    const sp = rain.SPEEDS[params.speed] || rain.SPEEDS.tortue;
+    mission = { id: 'rain:' + params.rain, type: 'rain', song: params.rain, speed: params.speed, title: `${sp.icon} ${s.title}` };
+  } else if (params.song) {
     const s = getSong(params.song);
     if (!s) return go('songs', {}, { replace: true });
     mission = { id: 'song:' + s.id, type: 'song', song: s.id, title: s.title };
@@ -41,7 +49,8 @@ export function gameScreen(app, params) {
 
   const mod = GAMES[mission.type];
   const cfg = mod.config(mission);
-  const exit = () => back(isLibrarySong ? 'songs' : 'planet', isLibrarySong ? {} : { planet: mission.planetId });
+  const exit = () =>
+    isRain ? back('rain', {}) : back(isLibrarySong ? 'songs' : 'planet', isLibrarySong ? {} : { planet: mission.planetId });
   // Première fois au vrai piano : on règle d'abord le micro (octave du clavier)
   const calibrate = () => go('calibrate', { next: { name: 'game', params } }, { replace: true });
   if (cfg.allowMode !== false && p.inputMode !== 'screen' && needsCalibration()) return calibrate();
@@ -50,14 +59,16 @@ export function gameScreen(app, params) {
   let game = null;
   let finished = false;
   let destroyed = false;
-  const finish = (stars) => {
+  const finish = (stars, extra = null) => {
     if (finished) return;
     finished = true;
-    const res = recordResult(isLibrarySong ? mission.song : mission.id, stars, { song: isLibrarySong });
-    showResult(stars, res);
+    const res = isRain
+      ? recordRain(mission.song, mission.speed, { stars, ...extra })
+      : recordResult(isLibrarySong ? mission.song : mission.id, stars, { song: isLibrarySong });
+    showResult(stars, res, extra);
   };
 
-  async function showResult(stars, res) {
+  async function showResult(stars, res, extra) {
     shell.inputEnabled = false;
     const m = mascot('excited', 'big');
     const msg =
@@ -69,7 +80,7 @@ export function gameScreen(app, params) {
             ? 'Bravo, c’est très bien !'
             : 'Bien joué ! Rejoue pour gagner plus d’étoiles.';
     const starEl = stars == null ? h('div', { class: 'result-done' }, '✅') : starsRow(0, 3, 'big');
-    const next = !isLibrarySong ? nextMission(mission.id) : null;
+    const next = !isLibrarySong && !isRain ? nextMission(mission.id) : null;
     const nextOk = next && missionUnlocked(state.currentProfile(), next.id, state.settings().unlockAll);
     const stickerBox = h('div', { class: 'sticker-new-box' });
 
@@ -92,9 +103,23 @@ export function gameScreen(app, params) {
         ),
       );
     }
-    buttons.append(h('button', { class: 'btn ghost', onclick: exit }, isLibrarySong ? '🎵 Chansons' : '🗺️ Carte'));
+    buttons.append(
+      h('button', { class: 'btn ghost', onclick: exit }, isRain ? '🌠 Pluie' : isLibrarySong ? '🎵 Chansons' : '🗺️ Carte'),
+    );
+    // Pluie de notes : score, record, précision, combo
+    const stats =
+      extra && extra.rain
+        ? h(
+            'div',
+            { class: 'rain-stats' },
+            h('div', { class: 'rain-big' }, `${extra.score} points`),
+            res.record && res.prevScore ? h('div', { class: 'rain-record' }, '🏆 Nouveau record !') : null,
+            !res.record && res.prevScore ? h('div', { class: 'rain-best' }, `Record : ${res.prevScore}`) : null,
+            h('div', {}, `🎯 ${extra.acc} % de notes justes · 🔥 combo ${extra.maxCombo}`),
+          )
+        : null;
 
-    modal(h('div', { class: 'result' }, m, h('h2', {}, msg), starEl, stickerBox, buttons), { dismissable: false });
+    modal(h('div', { class: 'result' }, m, h('h2', {}, msg), starEl, stats, stickerBox, buttons), { dismissable: false });
     say(msg);
 
     if (stars != null) {

@@ -13,6 +13,7 @@ import { freeScreen } from './screens/free.js';
 import { songsScreen, albumScreen } from './screens/library.js';
 import { parentsScreen, stickerGuideScreen } from './screens/parents.js';
 import { calibrateScreen, applyMicSettings } from './screens/calibrate.js';
+import { rainScreen } from './screens/rain.js';
 
 const s = state.settings();
 setVolume(s.volume);
@@ -28,6 +29,7 @@ register('planet', planetScreen);
 register('game', gameScreen);
 register('free', freeScreen);
 register('songs', songsScreen);
+register('rain', rainScreen);
 register('album', albumScreen);
 register('parents', parentsScreen);
 register('stickerGuide', stickerGuideScreen);

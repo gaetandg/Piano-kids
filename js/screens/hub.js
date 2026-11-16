@@ -27,6 +27,7 @@ export function bottomNav(active) {
   const items = [
     ['hub', '🚀', 'Voyage'],
     ['songs', '🎵', 'Chansons'],
+    ['rain', '🌠', 'Pluie'],
     ['free', '🎹', 'Piano libre'],
     ['album', '🏆', 'Album'],
   ];

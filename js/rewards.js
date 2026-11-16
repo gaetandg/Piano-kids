@@ -55,13 +55,36 @@ export function recordResult(key, stars, { song = false } = {}) {
   if (!song) patch.done = { ...(p.done || {}), [key]: true };
   updateProfile(p.id, patch);
 
-  // Nouveaux autocollants ?
+  return { stars, best: map[key] || 0, prev, newStickers: awardStickers(p) };
+}
+
+// Nouveaux autocollants gagnés avec les étoiles du profil.
+function awardStickers(p) {
   const earned = Math.min(STICKERS.length, Math.floor(totalStars(p) / STARS_PER_STICKER));
   const have = p.stickers || [];
   const newStickers = [];
   for (let i = have.length; i < earned; i++) newStickers.push(STICKERS[i]);
   if (newStickers.length) updateProfile(p.id, { stickers: [...have, ...newStickers.map((s) => s.id)] });
-  return { stars, best: map[key] || 0, prev, newStickers };
+  return newStickers;
+}
+
+// Pluie de notes : meilleur score par chanson et par vitesse.
+// Les étoiles (la meilleure par chanson) comptent aussi pour les autocollants.
+export function recordRain(songId, speed, { stars, score, acc, maxCombo }) {
+  const p = currentProfile();
+  if (!p) return { stars, record: false, newStickers: [] };
+  if (songId.startsWith('comp:')) return { stars, record: false, newStickers: [] }; // une composition : pas de record
+  const all = { ...(p.rain || {}) };
+  const bySpeed = { ...(all[songId] || {}) };
+  const prev = bySpeed[speed];
+  const record = !prev || score > prev.score;
+  bySpeed[speed] = record
+    ? { score, acc, maxCombo, stars: Math.max(stars, prev ? prev.stars : 0) }
+    : { ...prev, stars: Math.max(stars, prev.stars) };
+  all[songId] = bySpeed;
+  const rainStars = { ...(p.rainStars || {}), [songId]: Math.max((p.rainStars || {})[songId] || 0, stars) };
+  updateProfile(p.id, { rain: all, rainStars });
+  return { stars, record, prevScore: prev ? prev.score : 0, newStickers: awardStickers(p) };
 }
 
 export function starsToNextSticker(p) {

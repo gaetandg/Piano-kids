@@ -5,6 +5,27 @@
 import { parseNote, FINGERS_C, FINGERS_LEFT } from './music.js';
 
 const RAW = [
+  // échauffements ouverts dès le début (pratiques pour la Pluie de notes)
+  {
+    id: 'pluie-do',
+    title: 'La pluie de Do',
+    emoji: '🔴',
+    planet: 'p1',
+    level: 1,
+    bpm: 90,
+    notes: 'C4 C4 C4:2 C5 C5 C5:2 C4 C4 C5 C5 C4:4',
+    lyrics: null,
+  },
+  {
+    id: 'escalier',
+    title: 'L’escalier Do Ré Mi Fa Sol',
+    emoji: '🪜',
+    planet: 'p1',
+    level: 1,
+    bpm: 90,
+    notes: 'C4 D4 E4 F4 G4:2 G4 F4 E4 D4 C4:2 C4 D4 E4 F4 G4 F4 E4 D4 C4:4',
+    lyrics: null,
+  },
   {
     id: 'mi-re-do',
     title: 'Mi Ré Do',
