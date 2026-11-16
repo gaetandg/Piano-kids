@@ -246,6 +246,13 @@ const WHITE = [0, 2, 4, 5, 7, 9, 11];
             await page.waitForSelector('button:has-text("Terminer")', { timeout: 20000 });
             await page.click('button:has-text("Terminer")');
           }
+        } else if (m.type === 'rain') {
+          // vitesse tortue : la note attend, on joue la touche montrée
+          for (let k = 0; k < 600 && !(await done()); k++) {
+            const t = await page.$('.keyboard .key.target');
+            if (t) await t.tap().catch(() => {});
+            await page.waitForTimeout(200);
+          }
         } else if (m.type === 'rhythm') {
           results.push(`${vp.tag} ${m.id} (rhythm) ignoré (voir tests/rain.cjs pour le rythme)`);
           continue;

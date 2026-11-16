@@ -817,6 +817,21 @@ h3 {
   border: 3px solid rgba(255, 255, 255, 0.75);
   transform: rotate(14deg);
 }
+.planet-compositeurs {
+  background: radial-gradient(circle at 32% 30%, #fff1c1, #c9a227 50%, #5c4310);
+  box-shadow:
+    inset -10px -12px 22px rgba(0, 0, 0, 0.4),
+    0 0 26px rgba(201, 162, 39, 0.5);
+}
+.planet-compositeurs::before {
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  content: '🎩';
+  font-size: 40px;
+  border-radius: 50%;
+}
 .planet-emotions {
   background: linear-gradient(135deg, #ffd60a 0%, #ff9f1c 45%, #5d7bd8 55%, #2f3f8f 100%);
   box-shadow:
@@ -1604,6 +1619,25 @@ h3 {
 }
 .hl-btn.diff {
   background: linear-gradient(#ff9f1c, #e0610a);
+}
+.hl-row.three {
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 400px;
+}
+.hl-row.three .hl-btn {
+  width: 108px;
+  height: 118px;
+  font-size: 17px;
+}
+.hl-btn.mozart {
+  background: linear-gradient(#ff7eb6, #c2185b);
+}
+.hl-btn.beethoven {
+  background: linear-gradient(#5c6bc0, #283593);
+}
+.hl-btn.brahms {
+  background: linear-gradient(#26c6da, #00838f);
 }
 .hl-btn.joy {
   background: linear-gradient(#ffd60a, #ff9f1c);

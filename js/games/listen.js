@@ -1,12 +1,14 @@
-// « Écoute et choisis » : joyeux ou triste (majeur / mineur), crescendo ou decrescendo, vite ou lent.
+// « Écoute et choisis » : joyeux ou triste (majeur / mineur), crescendo ou decrescendo, vite ou lent,
+// et « qui a composé cette musique ? ».
 import { h, wait } from '../ui.js';
 import { playNote, sfxSuccess, sfxError } from '../audio.js';
 import { pick } from '../music.js';
+import { getSong } from '../songs.js';
 import { starsFromMistakes } from './shell.js';
 
 export const config = () => ({ allowMode: false, kb: { range: [55, 79], interactive: false } });
 
-// Pour chaque sorte de question : les deux réponses (la 1re est celle de gauche).
+// Pour chaque sorte de question : les réponses possibles (`a`, `b`, et parfois `c`), de gauche à droite.
 const KINDS = {
   mood: {
     ask: 'Écoute bien : cette musique est joyeuse ou triste ?',
@@ -32,7 +34,27 @@ const KINDS = {
     yes: { fast: 'Oui ! C’était rapide : allegro ! 🐇', slow: 'Oui ! C’était lent : lento. 🐢' },
     no: { fast: 'Non, c’était rapide.', slow: 'Non, c’était lent.' },
   },
+  composer: {
+    ask: 'Écoute ce début de morceau : qui l’a composé ?',
+    a: { key: 'mozart', emoji: '🎻', label: 'Mozart' },
+    b: { key: 'beethoven', emoji: '🎹', label: 'Beethoven' },
+    c: { key: 'brahms', emoji: '🌙', label: 'Brahms' },
+    yes: {
+      mozart: 'Oui ! C’était Mozart. 🎻',
+      beethoven: 'Oui ! C’était Beethoven. 🎹',
+      brahms: 'Oui ! C’était la berceuse de Brahms. 🌙',
+    },
+    no: { mozart: 'Non, c’était Mozart.', beethoven: 'Non, c’était Beethoven.', brahms: 'Non, c’était Brahms.' },
+  },
 };
+
+// les morceaux de chaque compositeur (on joue leur début)
+const PIECES = {
+  mozart: ['mozart-nuit', 'maman'],
+  beethoven: ['beethoven-elise', 'hymne'],
+  brahms: ['brahms-berceuse'],
+};
+const options = (K) => [K.a, K.b, K.c].filter(Boolean);
 
 // petits motifs (en demi-tons depuis la note de départ), version majeure
 const MOTIFS = [
@@ -44,7 +66,19 @@ const MOTIFS = [
 const toMinor = (iv) => (iv % 12 === 4 ? iv - 1 : iv % 12 === 9 ? iv - 1 : iv);
 
 // Joue un exemple. kind : 'mood' | 'volume' | 'tempo' ; answer : la bonne réponse. Renvoie {notes, secs}.
-export function playExample(kind, answer, { root = pick([60, 62, 65, 67]), motif = pick(MOTIFS) } = {}) {
+export function playExample(kind, answer, { root = pick([60, 62, 65, 67]), motif = pick(MOTIFS), piece = null } = {}) {
+  if (kind === 'composer') {
+    // le début du morceau, avec ses vraies durées
+    const song = getSong(piece || pick(PIECES[answer]));
+    const beat = 60 / (song.bpm || 100);
+    let t = 0;
+    const notes = song.notes.slice(0, 9).map((n) => n.midi);
+    song.notes.slice(0, 9).forEach((n) => {
+      playNote(n.midi, { when: t, dur: Math.max(0.3, n.dur * beat * 0.95) });
+      t += n.dur * beat;
+    });
+    return { notes, secs: t };
+  }
   let iv = motif;
   if (kind === 'mood' && answer === 'sad') iv = motif.map(toMinor);
   const notes = iv.map((x) => root + x);
@@ -83,7 +117,8 @@ export default function listen(shell, mission, finish) {
   // une suite équilibrée de réponses et de sortes de questions
   const plan = Array.from({ length: rounds }, (_, i) => {
     const kind = kinds[i % kinds.length];
-    return { kind, answer: i % 2 ? KINDS[kind].b.key : KINDS[kind].a.key };
+    const opts = options(KINDS[kind]);
+    return { kind, answer: opts[Math.floor(i / kinds.length) % opts.length].key };
   }).sort(() => Math.random() - 0.5);
 
   function buttons(kind) {
@@ -96,11 +131,15 @@ export default function listen(shell, mission, finish) {
         h('span', { class: 'hl-emoji' }, o.emoji),
         h('span', {}, o.label),
       );
-    row.append(
-      mk(K.a),
-      h('button', { class: 'icon-btn sound-round', 'aria-label': 'Réécouter', onclick: () => !locked && play() }, '🔊'),
-      mk(K.b),
+    const replay = h(
+      'button',
+      { class: 'icon-btn sound-round', 'aria-label': 'Réécouter', onclick: () => !locked && play() },
+      '🔊',
     );
+    // trois réponses : côte à côte, le bouton pour réécouter en dessous
+    row.classList.toggle('three', !!K.c);
+    if (K.c) row.append(mk(K.a), mk(K.b), mk(K.c), replay);
+    else row.append(mk(K.a), replay, mk(K.b));
   }
 
   async function play() {
@@ -121,7 +160,12 @@ export default function listen(shell, mission, finish) {
     }
     counter.textContent = `${round + 1} / ${rounds}`;
     const p = plan[round];
-    cur = { ...p, root: pick([60, 62, 65, 67]), motif: pick(MOTIFS) };
+    cur = {
+      ...p,
+      root: pick([60, 62, 65, 67]),
+      motif: pick(MOTIFS),
+      piece: p.kind === 'composer' ? pick(PIECES[p.answer]) : null,
+    };
     row._answer = p.answer; // pour les tests automatiques
     buttons(p.kind);
     const first = round === 0 || plan[round - 1].kind !== p.kind;

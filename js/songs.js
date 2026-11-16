@@ -164,6 +164,40 @@ const RAW = [
       'Au clair de la lu- ne, mon a- mi Pier- rot, prê- te- moi ta plu- me pour é- crire un mot. Ma chan- delle est mor- te, je n’ai plus de feu. Ou- vre- moi ta por- te pour l’a- mour de Dieu.',
   },
   {
+    id: 'mozart-nuit',
+    title: 'Une petite musique de nuit (Mozart)',
+    emoji: '🎻',
+    planet: 'p17',
+    level: 3,
+    bpm: 100,
+    notes: 'G4:1.5 D4:.5 G4:1.5 D4:.5 G4:.5 D4:.5 G4:.5 B4:.5 D5:2 ' + 'C5:1.5 A4:.5 C5:1.5 A4:.5 C5:.5 A4:.5 F#4:.5 A4:.5 D4:2',
+    lyrics: null,
+  },
+  {
+    id: 'beethoven-elise',
+    title: 'Lettre à Élise (Beethoven)',
+    emoji: '💌',
+    planet: 'p17',
+    level: 3,
+    bpm: 100,
+    notes:
+      'E5:.5 D#5:.5 E5:.5 D#5:.5 E5:.5 B4:.5 D5:.5 C5:.5 A4:1.5 C4:.5 E4:.5 A4:.5 B4:1.5 E4:.5 G#4:.5 B4:.5 C5:1.5 ' +
+      'E4:.5 E5:.5 D#5:.5 E5:.5 D#5:.5 E5:.5 B4:.5 D5:.5 C5:.5 A4:1.5 C4:.5 E4:.5 A4:.5 B4:1.5 E4:.5 C5:.5 B4:.5 A4:2',
+    lyrics: null,
+  },
+  {
+    id: 'brahms-berceuse',
+    title: 'Berceuse (Brahms)',
+    emoji: '🌙',
+    planet: 'p17',
+    level: 3,
+    bpm: 90,
+    notes:
+      'E4:.5 E4:.5 G4:2 E4:.5 E4:.5 G4:2 E4:.5 G4:.5 C5 B4:1.5 A4:.5 A4 G4 D4:.5 E4:.5 F4 D4 D4:.5 E4:.5 F4:2 ' +
+      'D4:.5 F4:.5 B4:.5 A4:.5 G4 B4 C5:3',
+    lyrics: null,
+  },
+  {
     id: 'frere-mineur',
     title: 'Frère Jacques triste (en mineur)',
     emoji: '🌧️',

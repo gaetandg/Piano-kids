@@ -1099,6 +1099,98 @@ export const PLANETS = [
     ],
   },
   {
+    id: 'p17',
+    name: 'Planète des Grands Compositeurs',
+    desc: 'Mozart, Beethoven et Brahms',
+    look: 'compositeurs',
+    missions: [
+      {
+        id: 'p17-intro',
+        type: 'intro',
+        title: 'Mozart',
+        slides: [
+          {
+            text: 'Bienvenue sur la planète des Grands Compositeurs ! 🎩 Il y a très longtemps, des musiciens ont écrit des mélodies que le monde entier joue encore aujourd’hui.',
+            mood: 'excited',
+          },
+          {
+            text: 'Voici Wolfgang Amadeus Mozart. Il a composé ses premiers morceaux à 5 ans… presque ton âge ! Écoute le début d’« Une petite musique de nuit ».',
+            kb: { range: [C4, 76], targets: [62, 67, 71, 74], label: true },
+            sound: [67, 62, 67, 62, 67, 62, 67, 71, 74],
+          },
+          {
+            text: 'Mozart a aussi inventé 12 façons différentes de jouer « Ah ! vous dirai-je, maman ». Tu la connais déjà !',
+            kb: { range: [C4, 72], targets: [60, 67, 69], label: true },
+            sound: [60, 60, 67, 67, 69, 69, 67],
+          },
+          {
+            text: 'À toi : joue le début de la musique de nuit : Sol, Ré, Sol, Ré, Sol !',
+            kb: { range: [C4, 72], targets: [62, 67], label: true },
+            try: { seq: [7, 2, 7, 2, 7], prompt: 'Sol Ré Sol Ré Sol' },
+          },
+        ],
+      },
+      { id: 'p17-nuit', type: 'song', title: 'Mozart : Une petite musique de nuit', song: 'mozart-nuit' },
+      {
+        id: 'p17-nuit-rain',
+        type: 'rain',
+        title: '🌠 Pluie de notes : la musique de nuit',
+        song: 'mozart-nuit',
+        speed: 'tortue',
+      },
+      {
+        id: 'p17-intro2',
+        type: 'intro',
+        title: 'Beethoven',
+        slides: [
+          {
+            text: 'Voici Ludwig van Beethoven. En vieillissant, il est devenu sourd… et il a continué à composer, en imaginant la musique dans sa tête !',
+            mood: 'excited',
+          },
+          {
+            text: 'Tu connais déjà sa musique la plus célèbre : l’Hymne à la joie. Écoute !',
+            kb: { range: [C4, 72], targets: [62, 64, 65, 67], label: true },
+            sound: [64, 64, 65, 67, 67, 65, 64, 62],
+          },
+          {
+            text: 'Il a aussi écrit la « Lettre à Élise ». Elle commence par deux notes voisines qui se balancent : Mi, Ré dièse, Mi, Ré dièse…',
+            kb: { range: [C4, 76], targets: [75, 76], label: true },
+            sound: [76, 75, 76, 75, 76, 71, 74, 72, 69],
+          },
+          {
+            text: 'À toi : Mi, Ré dièse, Mi, Ré dièse, Mi !',
+            kb: { range: [C4, 76], targets: [75, 76], label: true },
+            try: { seq: [4, 3, 4, 3, 4], prompt: 'Mi Ré♯ Mi Ré♯ Mi' },
+          },
+        ],
+      },
+      { id: 'p17-elise', type: 'song', title: 'Beethoven : Lettre à Élise', song: 'beethoven-elise' },
+      {
+        id: 'p17-intro3',
+        type: 'intro',
+        title: 'Brahms',
+        slides: [
+          {
+            text: 'Voici Johannes Brahms. Il a écrit une berceuse si douce que, depuis 150 ans, les parents la chantent aux bébés pour les endormir. 🌙',
+            mood: 'excited',
+          },
+          {
+            text: 'Écoute le début de la berceuse. Joue-la tout doucement, comme pour un bébé. 👶',
+            kb: { range: [C4, 72], targets: [64, 67], label: true },
+            sound: [64, 64, 67, 64, 64, 67],
+          },
+          {
+            text: 'À toi : Mi, Mi, Sol !',
+            kb: { range: [C4, 72], targets: [64, 67], label: true },
+            try: { seq: [4, 4, 7], prompt: 'Mi Mi Sol' },
+          },
+        ],
+      },
+      { id: 'p17-berceuse', type: 'song', title: 'Brahms : Berceuse', song: 'brahms-berceuse' },
+      { id: 'p17-quiz', type: 'listen', title: 'Qui a composé cette musique ?', kinds: ['composer'], rounds: 6 },
+    ],
+  },
+  {
     id: 'mystery',
     name: 'Planète Mystère',
     desc: 'Une surprise t’attend…',
