@@ -118,6 +118,22 @@ export default function intro(shell, mission, finish) {
     if (s.rhythm) extra.append(h('button', { class: 'btn sound', onclick: () => playRhythm(s.rhythm) }, '🔊 Écouter le rythme'));
     // exemple joué fort/doux, vite/lent… (planète des Émotions)
     if (s.demo) extra.append(h('button', { class: 'btn sound', onclick: () => playDemo(s.demo) }, '🔊 Écouter'));
+    // un accord : toutes les notes ensemble
+    if (s.chordSound)
+      extra.append(
+        h(
+          'button',
+          {
+            class: 'btn sound',
+            onclick: () =>
+              s.chordSound.forEach((m) => {
+                playNote(m, { dur: 1.4, vel: 0.6 });
+                shell.keyboard && shell.keyboard.flash(m, 'good');
+              }),
+          },
+          '🔊 Écouter l’accord',
+        ),
+      );
     if (s.img === 'sticker') {
       const pcs = Array.isArray(s.stickerPc) ? s.stickerPc : [s.stickerPc];
       extra.append(
@@ -177,7 +193,8 @@ export default function intro(shell, mission, finish) {
       }
       if (t.chord) {
         const m = t.chord[k];
-        label = `${noteName(m)} ${m < 60 ? '(main gauche)' : '(main droite)'}`;
+        // à deux mains, on dit quelle main joue ; à une main (accords), juste le nom
+        label = t.oneHand ? noteName(m) : `${noteName(m)} ${m < 60 ? '(main gauche)' : '(main droite)'}`;
         color = noteColor(m);
         done = t.got.includes(m);
       }

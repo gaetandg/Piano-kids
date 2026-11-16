@@ -1191,6 +1191,112 @@ export const PLANETS = [
     ],
   },
   {
+    id: 'p18',
+    name: 'Planète des Accords',
+    desc: 'Trois notes ensemble : Do, Fa, Sol',
+    look: 'accords',
+    missions: [
+      {
+        id: 'p18-intro',
+        type: 'intro',
+        title: 'Le sandwich de notes',
+        slides: [
+          {
+            text: 'Bienvenue sur la planète des Accords ! 🎶 Un accord, c’est plusieurs notes jouées ensemble, comme une petite équipe.',
+            mood: 'excited',
+          },
+          {
+            text: 'Le plus célèbre : Do, Mi, Sol. On prend une touche, on en saute une, on prend la suivante, on en saute une… comme un sandwich ! 🥪',
+            kb: { range: [C4, 72], targets: [60, 64, 67], label: true },
+            chordSound: [60, 64, 67],
+          },
+          {
+            text: 'Avec la main droite : le pouce (1) sur Do, le majeur (3) sur Mi et le petit doigt (5) sur Sol.',
+            img: 'hand',
+            kb: { range: [C4, 72], targets: [60, 64, 67], label: true },
+          },
+          {
+            text: 'À toi : joue Do, Mi et Sol ensemble. Tu peux aussi les jouer l’une après l’autre.',
+            kb: { range: [C4, 72], targets: [60, 64, 67], label: true },
+            try: { chord: [60, 64, 67], oneHand: true, prompt: 'Do + Mi + Sol' },
+          },
+          {
+            text: 'Même recette en partant de Fa : Fa, La, Do. Et en partant de Sol : Sol, Si, Ré. Tu as trois accords magiques !',
+            kb: { range: [C4, 76], targets: [65, 69, 72], label: true },
+            chordSound: [65, 69, 72],
+          },
+        ],
+      },
+      {
+        id: 'p18-chord1',
+        type: 'chord',
+        title: 'Do, Fa, Sol : les accords magiques',
+        chords: ['C', 'F', 'G'],
+        show: true,
+        rounds: 6,
+      },
+      { id: 'p18-chord2', type: 'chord', title: 'Construis l’accord', chords: ['C', 'F', 'G'], rounds: 8 },
+      {
+        id: 'p18-accomp1',
+        type: 'chord',
+        title: 'Accompagne Cosmo : Ah ! vous dirai-je, maman',
+        bpm: 100,
+        segments: [
+          { melody: 'C4 C4 G4 G4', chord: 'C' },
+          { melody: 'A4 A4', chord: 'F' },
+          { melody: 'G4:2', chord: 'C' },
+          { melody: 'F4 F4', chord: 'F' },
+          { melody: 'E4 E4', chord: 'C' },
+          { melody: 'D4 D4', chord: 'G' },
+          { melody: 'C4:2', chord: 'C' },
+        ],
+      },
+      {
+        id: 'p18-intro2',
+        type: 'intro',
+        title: 'Les accords tristes',
+        slides: [
+          {
+            text: 'Tu te souviens de la planète des Émotions ? Le même sandwich, en partant de La : La, Do, Mi… ça sonne triste ! C’est La mineur. 😢',
+            kb: { range: [55, 72], targets: [57, 60, 64], label: true },
+            chordSound: [57, 60, 64],
+          },
+          {
+            text: 'Et en partant de Ré : Ré, Fa, La. C’est Ré mineur, triste lui aussi.',
+            kb: { range: [55, 72], targets: [62, 65, 69], label: true },
+            chordSound: [62, 65, 69],
+          },
+          {
+            text: 'À toi : joue La mineur, La, Do et Mi ensemble !',
+            kb: { range: [55, 72], targets: [57, 60, 64], label: true },
+            try: { chord: [57, 60, 64], oneHand: true, prompt: 'La + Do + Mi' },
+          },
+        ],
+      },
+      {
+        id: 'p18-chord3',
+        type: 'chord',
+        title: 'Accords joyeux et tristes',
+        chords: ['C', 'Am', 'Dm', 'G'],
+        rounds: 8,
+      },
+      {
+        id: 'p18-accomp2',
+        type: 'chord',
+        title: 'Accompagne Cosmo : Au clair de la lune',
+        bpm: 96,
+        segments: [
+          { melody: 'C4 C4 C4 D4', chord: 'C' },
+          { melody: 'E4:2', chord: 'C' },
+          { melody: 'D4:2', chord: 'G' },
+          { melody: 'C4 E4', chord: 'C' },
+          { melody: 'D4 D4', chord: 'G' },
+          { melody: 'C4:4', chord: 'C' },
+        ],
+      },
+    ],
+  },
+  {
     id: 'mystery',
     name: 'Planète Mystère',
     desc: 'Une surprise t’attend…',

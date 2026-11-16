@@ -817,6 +817,19 @@ h3 {
   border: 3px solid rgba(255, 255, 255, 0.75);
   transform: rotate(14deg);
 }
+.planet-accords {
+  background: radial-gradient(circle at 32% 30%, #ffd1e8, #ff4f9a 45%, #6a1b4d);
+  box-shadow:
+    inset -10px -12px 22px rgba(0, 0, 0, 0.4),
+    0 0 26px rgba(255, 79, 154, 0.5);
+}
+.planet-accords::before {
+  inset: 18%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 25% 70%, #fff 12%, transparent 13%), radial-gradient(circle at 50% 45%, #fff 12%, transparent 13%),
+    radial-gradient(circle at 75% 20%, #fff 12%, transparent 13%);
+}
 .planet-compositeurs {
   background: radial-gradient(circle at 32% 30%, #fff1c1, #c9a227 50%, #5c4310);
   box-shadow:
@@ -2927,4 +2940,56 @@ h3 {
 }
 .game.compact.rain-running .talk {
   display: none;
+}
+
+/* ---------- Planète des Accords ---------- */
+.chord-card {
+  min-width: 150px;
+  padding: 14px 26px;
+  border-radius: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--cc) 75%, white), var(--cc));
+  color: #1a1a2e;
+  box-shadow:
+    0 8px 0 rgba(0, 0, 0, 0.3),
+    0 0 30px color-mix(in srgb, var(--cc) 50%, transparent);
+  animation: notepop 0.45s ease;
+}
+.chord-name {
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.chord-kind {
+  font-size: 18px;
+  font-weight: 700;
+}
+.chord-notes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+}
+.chord-note {
+  padding: 6px 12px;
+  border-radius: 14px;
+  font-weight: 700;
+  color: #1a1a2e;
+  opacity: 0.55;
+}
+.chord-note.ok {
+  opacity: 1;
+  box-shadow: 0 0 0 3px #fff;
+}
+.chord-skip {
+  color: var(--muted);
+  font-weight: 700;
+}
+.game.compact .chord-card {
+  padding: 6px 18px;
+}
+.game.compact .chord-name {
+  font-size: 30px;
 }

@@ -246,6 +246,17 @@ const WHITE = [0, 2, 4, 5, 7, 9, 11];
             await page.waitForSelector('button:has-text("Terminer")', { timeout: 20000 });
             await page.click('button:has-text("Terminer")');
           }
+        } else if (m.type === 'chord') {
+          // les 3 notes de l'accord affiché ; on réessaie tant que Cosmo chante encore
+          await eachRound(async () => {
+            for (let k = 0; k < 40; k++) {
+              const ns = await page.evaluate(() => document.querySelector('.chord-card')._notes);
+              for (const x of ns) (await tapMidi(x), await page.waitForTimeout(120));
+              await page.waitForTimeout(300);
+              if (/Bravo|Super|Parfait|Ça sonne/.test(await bubbleText()) || (await done())) break;
+              await page.waitForTimeout(400);
+            }
+          });
         } else if (m.type === 'rain') {
           // vitesse tortue : la note attend, on joue la touche montrée
           for (let k = 0; k < 600 && !(await done()); k++) {
