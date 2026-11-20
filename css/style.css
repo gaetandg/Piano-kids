@@ -3311,3 +3311,206 @@ button.sticker {
     min-height: 0;
   }
 }
+
+/* ---------- Album : onglets ---------- */
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin: 4px 0 10px;
+}
+.tab {
+  flex: 1;
+  border: 2px solid var(--line);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  border-radius: 16px;
+  padding: 6px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font: inherit;
+  font-weight: 700;
+  font-size: 13px;
+}
+.tab.on {
+  color: #fff;
+  border-color: var(--yellow);
+  background: rgba(255, 214, 10, 0.15);
+}
+.tab-ic {
+  font-size: 24px;
+}
+
+/* ---------- Ma planète ---------- */
+.deco-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.deco-box {
+  display: flex;
+  justify-content: center;
+}
+.deco-scene {
+  position: relative;
+  width: min(100%, 52dvh, 460px);
+  aspect-ratio: 1;
+  border-radius: 24px;
+  overflow: hidden;
+  container-type: inline-size;
+  touch-action: none;
+  background:
+    radial-gradient(circle at 20% 15%, #fff 0.6%, transparent 1%),
+    radial-gradient(circle at 70% 10%, #fff 0.5%, transparent 0.9%),
+    radial-gradient(circle at 85% 35%, #fff 0.7%, transparent 1.1%),
+    radial-gradient(circle at 10% 45%, #fff 0.5%, transparent 0.9%),
+    radial-gradient(circle at 45% 25%, #fff 0.4%, transparent 0.8%),
+    radial-gradient(circle at 60% 50%, rgba(165, 94, 234, 0.35), transparent 60%), linear-gradient(#0d1440, #1d1060);
+  border: 2px solid var(--line);
+}
+.deco-planet {
+  position: absolute;
+  left: 50%;
+  bottom: -18%;
+  width: 78%;
+  height: auto;
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+}
+.deco-item {
+  position: absolute;
+  font-size: calc(var(--s, 1) * 13cqw);
+  line-height: 1;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+  touch-action: none;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
+}
+.deco-item.glow {
+  filter: drop-shadow(0 0 6px #ffd60a) drop-shadow(0 0 2px #fff);
+}
+.deco-item.sel {
+  outline: 3px dashed var(--yellow);
+  outline-offset: 4px;
+  border-radius: 10px;
+}
+.deco-scene.mini {
+  width: 100%;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.deco-tools {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  min-height: 48px;
+}
+.deco-hint {
+  color: var(--muted);
+  font-size: 14px;
+}
+.deco-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  border: 2px solid var(--line);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 22px;
+}
+.deco-label {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--muted);
+}
+.deco-tray,
+.deco-looks {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 8px;
+}
+.deco-pick {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 32px;
+}
+.deco-pick.glow {
+  border-color: var(--yellow);
+  box-shadow: 0 0 10px rgba(255, 214, 10, 0.6);
+}
+.deco-empty {
+  color: var(--muted);
+  font-weight: 600;
+}
+.deco-look {
+  flex: none;
+  border: 3px solid transparent;
+  background: none;
+  border-radius: 50%;
+  padding: 3px;
+}
+.deco-look.on {
+  border-color: var(--yellow);
+}
+.deco-look .planet {
+  display: block;
+  width: 44px;
+  height: 44px;
+}
+.deco-look .planet::before {
+  font-size: 22px;
+}
+.my-planet {
+  flex: none;
+  width: 74px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0;
+}
+.deco-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .deco-panel {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .deco-scene {
+    width: min(62dvh, 46vw);
+  }
+  .deco-side {
+    flex: 1;
+  }
+  .deco-tools {
+    justify-content: flex-start;
+  }
+  .tab {
+    flex-direction: row;
+    justify-content: center;
+    gap: 6px;
+    padding: 4px;
+  }
+  .tab-ic {
+    font-size: 20px;
+  }
+}

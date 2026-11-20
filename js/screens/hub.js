@@ -5,6 +5,7 @@ import { go, back } from '../router.js';
 import { PLANETS, findPlanet, planetUnlocked, missionUnlocked, planetProgress, isDone, currentMission } from '../curriculum.js';
 import { planetEl } from '../games/art.js';
 import { starsToNextPack, packsAvailable } from '../rewards.js';
+import { decoScene } from './deco.js';
 
 export function topBar(p, { title = null, onBack = null } = {}) {
   return h(
@@ -86,6 +87,13 @@ export function hubScreen(app) {
           : toNext
             ? h('div', { class: 'bubble-sub' }, `Encore ${toNext} ⭐ pour une pochette surprise !`)
             : null,
+      ),
+      // la planète décorée par l'enfant, en petit
+      h(
+        'button',
+        { class: 'my-planet', 'aria-label': 'Ma planète', onclick: () => go('album', { tab: 'deco' }, { replace: true }) },
+        decoScene(p, { mini: true }),
+        h('span', {}, 'Ma planète'),
       ),
     ),
   );

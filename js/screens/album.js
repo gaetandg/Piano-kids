@@ -1,10 +1,17 @@
-// Album : les autocollants, les pochettes surprises à ouvrir.
+// Album : les autocollants et les pochettes surprises, puis « Ma planète » à décorer.
 import { h, mascot, confetti, modal, wait } from '../ui.js';
 import * as state from '../state.js';
 import { go } from '../router.js';
 import { STICKERS, packsAvailable, openPack, starsToNextPack } from '../rewards.js';
 import { sfxWhoosh, sfxStar, sfxBigSuccess } from '../audio.js';
 import { topBar, bottomNav } from './hub.js';
+import { decoPanel } from './deco.js';
+
+// Onglets de l'album
+const TABS = [
+  ['stickers', '🌟', 'Autocollants'],
+  ['deco', '🪐', 'Ma planète'],
+];
 
 // Un autocollant (grand), avec ses badges « Nouveau » / « Brillant ».
 export function stickerCard(s, { shiny = false, isNew = false } = {}) {
@@ -56,9 +63,10 @@ export function packOpener({ onOpened } = {}) {
   return wrap;
 }
 
-export function albumScreen(app) {
+export function albumScreen(app, params = {}) {
   const p = state.currentProfile();
   if (!p) return go('profiles', {}, { replace: true });
+  let tab = TABS.some((t) => t[0] === params.tab) ? params.tab : 'stickers';
 
   const top = h('div', { class: 'talk inline' });
   const packs = h('div', { class: 'packs' });
@@ -149,8 +157,42 @@ export function albumScreen(app) {
     }
   }
 
-  renderTalk();
-  renderPacks();
-  renderGrid();
-  app.append(h('div', { class: 'page with-nav' }, topBar(p, { title: 'Mon album' }), top, packs, grid), bottomNav('album'));
+  const tabsBar = h('div', { class: 'tabs' });
+  const body = h('div', { class: 'tab-body' });
+  function renderTabs() {
+    tabsBar.innerHTML = '';
+    for (const [id, ic, label] of TABS) {
+      tabsBar.append(
+        h(
+          'button',
+          {
+            class: 'tab' + (id === tab ? ' on' : ''),
+            onclick: () => {
+              if (id === tab) return;
+              tab = id;
+              renderTabs();
+              renderBody();
+            },
+          },
+          h('span', { class: 'tab-ic' }, ic),
+          h('span', {}, label),
+        ),
+      );
+    }
+  }
+  function renderBody() {
+    body.innerHTML = '';
+    if (tab === 'deco') {
+      body.append(decoPanel(p));
+      return;
+    }
+    renderTalk();
+    renderPacks();
+    renderGrid();
+    body.append(top, packs, grid);
+  }
+
+  renderTabs();
+  renderBody();
+  app.append(h('div', { class: 'page with-nav' }, topBar(p, { title: 'Mon album' }), tabsBar, body), bottomNav('album'));
 }
