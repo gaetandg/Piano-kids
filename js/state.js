@@ -107,6 +107,8 @@ export function resetProgress(id) {
     rain: {},
     rainStars: {},
     memoStars: {},
+    trophiesSeen: {},
+    days: [],
   });
 }
 

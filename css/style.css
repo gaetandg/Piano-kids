@@ -3656,3 +3656,114 @@ button.sticker {
     aspect-ratio: 1;
   }
 }
+
+/* ---------- Trophées ---------- */
+.trophies {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.trophy {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 18px;
+  border: 2px solid var(--line);
+  background: rgba(255, 255, 255, 0.05);
+}
+.trophy.got {
+  border-color: rgba(255, 214, 10, 0.6);
+  background: rgba(255, 214, 10, 0.08);
+}
+.trophy.fresh {
+  box-shadow: 0 0 18px rgba(255, 214, 10, 0.6);
+  animation: pop 0.5s ease;
+}
+.trophy-ic {
+  font-size: 36px;
+  width: 44px;
+  text-align: center;
+}
+.trophy:not(.got) .trophy-ic {
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+.trophy-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.trophy-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.trophy-head b {
+  font-size: 16px;
+}
+.trophy-medals {
+  margin-left: auto;
+  display: flex;
+  gap: 2px;
+}
+.medal {
+  font-size: 20px;
+  filter: grayscale(1);
+  opacity: 0.3;
+}
+.medal.on {
+  filter: none;
+  opacity: 1;
+}
+.trophy-goal {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.trophy-goal.gold {
+  color: var(--yellow);
+  font-weight: 700;
+}
+.trophy-count {
+  flex: none;
+  font-weight: 700;
+}
+.trophy-bar {
+  height: 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.trophy-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #ffd60a, #ff9f1c);
+}
+.trophy-new {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 0;
+}
+.trophy-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  background: rgba(255, 214, 10, 0.15);
+  border: 2px solid var(--yellow);
+  border-radius: 14px;
+  padding: 6px 10px;
+  font-size: 15px;
+  animation: pop 0.4s ease;
+}
+.trophy-line-ic {
+  font-size: 26px;
+}

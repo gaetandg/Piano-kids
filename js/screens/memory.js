@@ -7,7 +7,8 @@ import { go } from '../router.js';
 import { STICKERS, packsAvailable } from '../rewards.js';
 import { playNote, sfxSuccess, sfxBigSuccess, sfxStar } from '../audio.js';
 import { noteColor, noteName, shuffle } from '../music.js';
-import { packOpener } from './album.js';
+import { packOpener, trophyLines } from './album.js';
+import { markDay, newTrophies, markTrophiesSeen } from '../trophies.js';
 
 export const LEVELS = {
   eyes: { icon: '👀', label: 'Avec les yeux', pairs: 6, notes: [60, 62, 64, 65, 67, 69], three: 10, two: 14 },
@@ -148,6 +149,7 @@ export function memoryScreen(app, params) {
     const best = { ...(p.memoStars || {}) };
     best[level] = Math.max(best[level] || 0, stars);
     state.updateProfile(p.id, { memoStars: best });
+    markDay(p);
     const newPacks = packsAvailable(p) - before;
     // la mélodie des paires trouvées, en récompense
     pairs.forEach((pair, i) => playNote(pair.note, { when: i * 0.18, dur: 0.4 }));
@@ -185,6 +187,9 @@ export function memoryScreen(app, params) {
       confetti();
       sfxBigSuccess();
     }
+    const tr = newTrophies(p);
+    markTrophiesSeen(p, tr.slice(0, 2));
+    if (tr.length) prize.append(trophyLines(tr));
     if (newPacks > 0) prize.append(h('div', { class: 'packs-title' }, '🎁 Tu as gagné une pochette surprise !'), packOpener());
   }
 

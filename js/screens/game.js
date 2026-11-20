@@ -5,7 +5,8 @@ import { go, back } from '../router.js';
 import { findMission, nextMission, missionUnlocked } from '../curriculum.js';
 import { getSong } from '../songs.js';
 import { recordResult, recordRain, packsAvailable } from '../rewards.js';
-import { packOpener } from './album.js';
+import { packOpener, trophyLines } from './album.js';
+import { newTrophies, markTrophiesSeen } from '../trophies.js';
 import { createShell } from '../games/shell.js';
 import { sfxStar, sfxBigSuccess, sfxWhoosh } from '../audio.js';
 import { say } from '../speech.js';
@@ -140,6 +141,14 @@ export function gameScreen(app, params) {
     } else {
       confetti(40);
       sfxBigSuccess();
+    }
+    // nouveaux trophées
+    const tr = newTrophies(state.currentProfile());
+    markTrophiesSeen(state.currentProfile(), tr.slice(0, 2)); // les autres restent « Nouveau ! » dans l'album
+    if (tr.length) {
+      await wait(500);
+      stickerBox.append(trophyLines(tr));
+      sfxStar(1);
     }
     if (res.newPacks > 0) {
       await wait(600);

@@ -1,5 +1,5 @@
 // Service worker : l'app marche hors connexion, mais prend toujours la dernière version en ligne.
-const CACHE = 'piano-cosmos-v0.18.0';
+const CACHE = 'piano-cosmos-v0.19.0';
 const CORE = [
   './',
   './index.html',
@@ -22,6 +22,7 @@ const CORE = [
   './js/songs.js',
   './js/curriculum.js',
   './js/rewards.js',
+  './js/trophies.js',
   './js/version.js',
   './js/screens/profiles.js',
   './js/screens/hub.js',

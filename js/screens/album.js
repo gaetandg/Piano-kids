@@ -7,12 +7,14 @@ import { sfxWhoosh, sfxStar, sfxBigSuccess } from '../audio.js';
 import { topBar, bottomNav } from './hub.js';
 import { decoPanel } from './deco.js';
 import { memoryMenu } from './memory.js';
+import { TROPHIES, TIERS, tierOf, newTrophies, markTrophiesSeen } from '../trophies.js';
 
 // Onglets de l'album
 const TABS = [
   ['stickers', '🌟', 'Autocollants'],
   ['deco', '🪐', 'Ma planète'],
   ['memory', '🃏', 'Mémory'],
+  ['trophies', '🏆', 'Trophées'],
 ];
 
 // Un autocollant (grand), avec ses badges « Nouveau » / « Brillant ».
@@ -63,6 +65,80 @@ export function packOpener({ onOpened } = {}) {
   });
   wrap.append(pack);
   return wrap;
+}
+
+// Annonce de nouveaux trophées (écran de résultat, fin du Mémory) : 2 lignes au plus.
+export function trophyLines(list) {
+  const box = h('div', { class: 'trophy-new' });
+  list
+    .slice(0, 2)
+    .forEach(({ trophy, tier }) =>
+      box.append(
+        h(
+          'div',
+          { class: 'trophy-line' },
+          h('span', { class: 'trophy-line-ic' }, TIERS[tier - 1].icon),
+          h('span', {}, 'Nouveau trophée : ', h('b', {}, trophy.name), ` (${TIERS[tier - 1].name}) !`),
+        ),
+      ),
+    );
+  if (list.length > 2)
+    box.append(h('div', { class: 'packs-more' }, `+ ${list.length - 2} autre${list.length > 3 ? 's' : ''} dans l’album 🏆`));
+  return box;
+}
+
+// L'onglet Trophées : chaque trophée, ses trois médailles et la progression vers la suivante.
+function trophiesPanel(p) {
+  const pending = newTrophies(p); // ceux qu'on n'avait pas encore vus
+  const fresh = new Set(pending.map((x) => x.trophy.id));
+  markTrophiesSeen(p, pending);
+  const list = h('div', { class: 'trophies' });
+  let total = 0;
+  for (const t of TROPHIES) {
+    const tier = tierOf(t, p);
+    total += tier;
+    const v = t.value(p);
+    const next = t.tiers[tier];
+    const prev = tier ? t.tiers[tier - 1] : 0;
+    const frac = next ? Math.max(0, Math.min(1, (v - prev) / (next - prev))) : 1;
+    list.append(
+      h(
+        'div',
+        { class: 'trophy' + (tier ? ' got' : '') + (fresh.has(t.id) ? ' fresh' : '') },
+        h('span', { class: 'trophy-ic' }, t.icon),
+        h(
+          'div',
+          { class: 'trophy-body' },
+          h(
+            'div',
+            { class: 'trophy-head' },
+            h('b', {}, t.name),
+            fresh.has(t.id) ? h('span', { class: 'tag new' }, 'Nouveau !') : null,
+            h(
+              'span',
+              { class: 'trophy-medals' },
+              TIERS.map((x, i) => h('span', { class: 'medal' + (i < tier ? ' on' : '') }, x.icon)),
+            ),
+          ),
+          next
+            ? h(
+                'div',
+                { class: 'trophy-goal' },
+                h('span', {}, t.goal(next)),
+                h('span', { class: 'trophy-count' }, `${Math.min(v, next)} / ${next}`),
+              )
+            : h('div', { class: 'trophy-goal gold' }, 'Trophée en or, bravo ! 🎉'),
+          h('div', { class: 'trophy-bar' }, h('span', { style: { width: frac * 100 + '%' } })),
+        ),
+      ),
+    );
+  }
+  return h(
+    'div',
+    {},
+    h('p', { class: 'lead small' }, `🏆 Tu as ${total} médaille${total > 1 ? 's' : ''} sur ${TROPHIES.length * 3} !`),
+    list,
+  );
 }
 
 export function albumScreen(app, params = {}) {
@@ -190,6 +266,10 @@ export function albumScreen(app, params = {}) {
     }
     if (tab === 'memory') {
       body.append(memoryMenu(p));
+      return;
+    }
+    if (tab === 'trophies') {
+      body.append(trophiesPanel(p));
       return;
     }
     renderTalk();

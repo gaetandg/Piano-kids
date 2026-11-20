@@ -2,6 +2,7 @@
 // Tous les 4 ⭐, une pochette à ouvrir : un autocollant au hasard parmi ceux qu'on n'a pas encore,
 // parfois en version brillante ✨. Quand on a tout, les pochettes donnent les versions brillantes.
 import { currentProfile, updateProfile, totalStars } from './state.js';
+import { markDay } from './trophies.js';
 
 export const STARS_PER_STICKER = 4;
 
@@ -105,6 +106,7 @@ export function recordResult(key, stars, { song = false } = {}) {
   const p = currentProfile();
   if (!p) return { stars, best: stars, newPacks: 0 };
   const before = packsAvailable(p);
+  markDay(p);
   const field = song ? 'songStars' : 'stars';
   const map = { ...(p[field] || {}) };
   const prev = map[key] || 0;
@@ -121,6 +123,7 @@ export function recordResult(key, stars, { song = false } = {}) {
 export function recordRain(songId, speed, { stars, score, acc, maxCombo }) {
   const p = currentProfile();
   if (!p) return { stars, record: false, newPacks: 0 };
+  markDay(p);
   if (songId.startsWith('comp:')) return { stars, record: false, newPacks: 0 }; // une composition : pas de record
   const before = packsAvailable(p);
   const all = { ...(p.rain || {}) };
