@@ -586,6 +586,38 @@ h3 {
 .nav-ic {
   font-size: 26px;
 }
+.bottom-nav button {
+  position: relative;
+}
+.nav-badge {
+  position: absolute;
+  top: 0;
+  right: calc(50% - 26px);
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: #ff4757;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.bubble-sub.link {
+  display: block;
+  border: none;
+  background: rgba(255, 214, 10, 0.25);
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 4px 8px;
+  margin-top: 6px;
+  text-align: left;
+}
 
 /* ---------- Carte de la galaxie ---------- */
 .banner {
@@ -2992,4 +3024,290 @@ h3 {
 }
 .game.compact .chord-name {
   font-size: 30px;
+}
+
+/* ---------- Pochettes surprises ---------- */
+.packs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 12px;
+}
+.packs:empty {
+  display: none;
+}
+.packs-title {
+  font-weight: 700;
+  font-size: 18px;
+  text-align: center;
+}
+.packs-more {
+  margin-top: 8px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.pack-zone {
+  display: flex;
+  justify-content: center;
+  min-height: 150px;
+  align-items: center;
+}
+.pack {
+  position: relative;
+  width: 124px;
+  height: 160px;
+  border: none;
+  border-radius: 14px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #fff;
+  background:
+    linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.45) 45%, transparent 60%),
+    linear-gradient(135deg, #7b2ff7, #f107a3 55%, #ffb400);
+  background-size:
+    250% 100%,
+    100% 100%;
+  box-shadow:
+    0 8px 0 rgba(0, 0, 0, 0.3),
+    0 0 26px rgba(241, 7, 163, 0.5);
+  animation: foil 2.4s linear infinite;
+  clip-path: polygon(
+    0 6%,
+    8% 0,
+    16% 6%,
+    24% 0,
+    32% 6%,
+    40% 0,
+    48% 6%,
+    56% 0,
+    64% 6%,
+    72% 0,
+    80% 6%,
+    88% 0,
+    96% 6%,
+    100% 2%,
+    100% 100%,
+    0 100%
+  );
+}
+.pack-star {
+  font-size: 52px;
+}
+.pack-label {
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.1;
+  text-transform: uppercase;
+  text-align: center;
+}
+.pack-tap {
+  font-size: 12px;
+  opacity: 0.9;
+}
+.pack.shake {
+  animation: packshake 0.7s ease;
+}
+.pack.burst {
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
+  transform: scale(1.4);
+  opacity: 0;
+}
+@keyframes foil {
+  from {
+    background-position:
+      120% 0,
+      0 0;
+  }
+  to {
+    background-position:
+      -120% 0,
+      0 0;
+  }
+}
+@keyframes packshake {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  20% {
+    transform: rotate(-8deg) scale(1.05);
+  }
+  40% {
+    transform: rotate(8deg) scale(1.08);
+  }
+  60% {
+    transform: rotate(-6deg) scale(1.1);
+  }
+  80% {
+    transform: rotate(6deg) scale(1.12);
+  }
+}
+.reveal-card {
+  width: 150px;
+  padding: 14px 10px;
+  border-radius: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: radial-gradient(circle at 40% 30%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.08));
+  border: 3px solid #fff;
+  animation: revealpop 0.6s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+.reveal-e {
+  font-size: 72px;
+  line-height: 1;
+}
+.reveal-n {
+  font-weight: 700;
+  font-size: 19px;
+}
+.reveal-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.tag {
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 2px 8px;
+}
+.tag.new {
+  background: #2ed573;
+  color: #0b1026;
+}
+.tag.glitter {
+  background: linear-gradient(90deg, #ff4757, #ffd60a, #2ed573, #38c6f4, #a55eea);
+  color: #0b1026;
+}
+@keyframes revealpop {
+  0% {
+    transform: scale(0.2) rotate(-25deg);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+}
+/* autocollant brillant : bordure arc-en-ciel qui tourne et paillette */
+.shiny {
+  position: relative;
+  border-color: transparent !important;
+  background:
+    radial-gradient(circle at 40% 30%, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.06)) padding-box,
+    linear-gradient(#1d2450, #1d2450) padding-box,
+    conic-gradient(from var(--a, 0deg), #ff4757, #ffd60a, #2ed573, #38c6f4, #a55eea, #ff4757) border-box !important;
+  animation: shinyspin 3s linear infinite;
+  box-shadow: 0 0 18px rgba(255, 214, 10, 0.55) !important;
+}
+.shiny::after {
+  content: '✨';
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  font-size: 20px;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@property --a {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes shinyspin {
+  to {
+    --a: 360deg;
+  }
+}
+.sticker.on {
+  font: inherit;
+  padding: 0;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.18);
+  }
+}
+button.sticker {
+  cursor: pointer;
+}
+.sticker.fresh {
+  animation: revealpop 0.6s ease;
+  box-shadow: 0 0 24px #ffd60a;
+}
+.sticker-zoom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.sticker-zoom .reveal-card {
+  width: 200px;
+}
+.sticker-zoom .reveal-e {
+  font-size: 110px;
+}
+
+/* résultat à l'horizontale : deux colonnes pour que la pochette et les boutons restent visibles */
+@media (max-height: 520px) and (orientation: landscape) {
+  .modal {
+    width: min(94vw, 720px);
+  }
+  .result {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    column-gap: 18px;
+    align-items: center;
+  }
+  .result > .mascot {
+    grid-column: 1;
+    grid-row: 1;
+    width: 90px;
+    height: 90px;
+    justify-self: center;
+  }
+  .result > h2 {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .result > .stars,
+  .result > .result-done {
+    grid-column: 1;
+    grid-row: 3;
+  }
+  .result > .rain-stats {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .result > .sticker-new-box {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .result > .result-buttons {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  .result .pack {
+    width: 96px;
+    height: 124px;
+  }
+  .result .pack-star {
+    font-size: 38px;
+  }
+  .result .pack-zone {
+    min-height: 0;
+  }
 }

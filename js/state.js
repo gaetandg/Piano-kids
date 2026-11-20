@@ -97,7 +97,7 @@ export function deleteProfile(id) {
 }
 
 export function resetProgress(id) {
-  updateProfile(id, { stars: {}, done: {}, songStars: {}, stickers: [], rain: {}, rainStars: {} });
+  updateProfile(id, { stars: {}, done: {}, songStars: {}, stickers: [], shiny: [], packsOpened: 0, rain: {}, rainStars: {} });
 }
 
 export function totalStars(p) {

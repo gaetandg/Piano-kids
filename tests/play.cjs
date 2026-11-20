@@ -149,7 +149,27 @@ const NAMES = { Do: 0, Ré: 2, Mi: 4, Fa: 5, Sol: 7, La: 9, Si: 11 };
     saved.done['p1-intro'] && saved.stars['p3-song1'] === 3 && saved.stars['p3-play'] === 1,
     JSON.stringify(saved.stars),
   );
-  check('autocollant gagné', saved.stickers.length >= 1, JSON.stringify(saved.stickers));
+  // 8 étoiles = 2 pochettes surprises, à ouvrir dans l'album
+  await page.evaluate(() => {
+    history.pushState({ name: 'album', params: {} }, '');
+    dispatchEvent(new PopStateEvent('popstate', { state: { name: 'album', params: {} } }));
+  });
+  await page.waitForTimeout(400);
+  const badge = await page.textContent('.nav-badge').catch(() => '');
+  for (let i = 0; i < 4 && (await page.$('.pack')); i++) {
+    await page.click('.pack');
+    await page.waitForTimeout(1300);
+    const nextBtn = await page.$('button:has-text("Ouvrir la suivante")');
+    if (nextBtn) await nextBtn.click();
+    await page.waitForTimeout(200);
+  }
+  const opened = await page.evaluate(() => JSON.parse(localStorage.getItem('pianoKids.v1')).profiles[0]);
+  const shown = await page.$$eval('.album .sticker.on', (s) => s.length);
+  check(
+    'pochettes ouvertes',
+    badge === '2' && opened.stickers.length === 2 && opened.packsOpened === 2 && shown === 2 && !(await page.$('.pack')),
+    `(pastille ${badge}, autocollants ${JSON.stringify(opened.stickers)}, affichés ${shown})`,
+  );
   if (process.env.SHOTS) {
     await page.evaluate(() => {
       history.pushState({ name: 'planet', params: { planet: 'p3' } }, '');

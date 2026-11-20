@@ -4,7 +4,8 @@ import * as state from '../state.js';
 import { go, back } from '../router.js';
 import { findMission, nextMission, missionUnlocked } from '../curriculum.js';
 import { getSong } from '../songs.js';
-import { recordResult, recordRain } from '../rewards.js';
+import { recordResult, recordRain, packsAvailable } from '../rewards.js';
+import { packOpener } from './album.js';
 import { createShell } from '../games/shell.js';
 import { sfxStar, sfxBigSuccess, sfxWhoosh } from '../audio.js';
 import { say } from '../speech.js';
@@ -140,18 +141,18 @@ export function gameScreen(app, params) {
       confetti(40);
       sfxBigSuccess();
     }
-    if (res.newStickers.length) {
+    if (res.newPacks > 0) {
       await wait(600);
-      res.newStickers.forEach((s) => {
-        stickerBox.append(
-          h(
-            'div',
-            { class: 'sticker-new' },
-            h('span', { class: 'sticker-big' }, s.e),
-            h('span', {}, 'Nouvel autocollant : ', h('b', {}, s.name), ' !'),
-          ),
-        );
-      });
+      // une pochette surprise gagnée : on peut l'ouvrir tout de suite
+      stickerBox.append(
+        h('div', { class: 'packs-title' }, '🎁 Tu as gagné une pochette surprise !'),
+        packOpener({
+          onOpened: () => {
+            const left = packsAvailable(state.currentProfile());
+            if (left) stickerBox.append(h('div', { class: 'packs-more' }, `Encore ${left} à ouvrir dans l’album !`));
+          },
+        }),
+      );
       sfxStar(2);
     }
   }

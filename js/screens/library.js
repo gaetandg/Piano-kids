@@ -1,10 +1,9 @@
-// Bibliothèque de chansons et album d'autocollants.
-import { h, starsRow, mascot } from '../ui.js';
+// Bibliothèque de chansons.
+import { h, starsRow } from '../ui.js';
 import * as state from '../state.js';
 import { go } from '../router.js';
 import { SONGS } from '../songs.js';
 import { planetUnlocked, findPlanet } from '../curriculum.js';
-import { STICKERS, starsToNextSticker } from '../rewards.js';
 import { topBar, bottomNav } from './hub.js';
 import { noteColor, pc } from '../music.js';
 import { playMelody } from '../games/compose.js';
@@ -79,41 +78,5 @@ export function songsScreen(app) {
       mine.length ? h('div', { class: 'song-list' }, mine) : null,
     ),
     bottomNav('songs'),
-  );
-}
-
-export function albumScreen(app) {
-  const p = state.currentProfile();
-  if (!p) return go('profiles', {}, { replace: true });
-  const have = new Set(p.stickers || []);
-  const toNext = starsToNextSticker(p);
-  const grid = h(
-    'div',
-    { class: 'album' },
-    STICKERS.map((s) =>
-      have.has(s.id)
-        ? h('div', { class: 'sticker on' }, h('span', { class: 'sticker-e' }, s.e), h('span', { class: 'sticker-n' }, s.name))
-        : h('div', { class: 'sticker' }, h('span', { class: 'sticker-e' }, '?'), h('span', { class: 'sticker-n' }, '???')),
-    ),
-  );
-  app.append(
-    h(
-      'div',
-      { class: 'page with-nav' },
-      topBar(p, { title: 'Mon album' }),
-      h(
-        'div',
-        { class: 'talk inline' },
-        mascot('excited', 'small'),
-        h(
-          'div',
-          { class: 'bubble' },
-          `Tu as ${have.size} autocollant${have.size > 1 ? 's' : ''} sur ${STICKERS.length} !`,
-          toNext ? h('div', { class: 'bubble-sub' }, `Gagne encore ${toNext} ⭐ pour le prochain.`) : null,
-        ),
-      ),
-      grid,
-    ),
-    bottomNav('album'),
   );
 }

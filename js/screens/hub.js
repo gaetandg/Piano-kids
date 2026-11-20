@@ -4,7 +4,7 @@ import * as state from '../state.js';
 import { go, back } from '../router.js';
 import { PLANETS, findPlanet, planetUnlocked, missionUnlocked, planetProgress, isDone, currentMission } from '../curriculum.js';
 import { planetEl } from '../games/art.js';
-import { starsToNextSticker } from '../rewards.js';
+import { starsToNextPack, packsAvailable } from '../rewards.js';
 
 export function topBar(p, { title = null, onBack = null } = {}) {
   return h(
@@ -40,6 +40,10 @@ export function bottomNav(active) {
         { class: name === active ? 'on' : '', onclick: () => name !== active && go(name, {}, { replace: true }) },
         h('span', { class: 'nav-ic' }, icon),
         h('span', {}, label),
+        // pastille : pochettes à ouvrir
+        name === 'album' && packsAvailable(state.currentProfile())
+          ? h('span', { class: 'nav-badge' }, packsAvailable(state.currentProfile()))
+          : null,
       ),
     ),
   );
@@ -55,7 +59,8 @@ export function hubScreen(app) {
   page.append(topBar(p));
 
   // Message de Cosmo
-  const toNext = starsToNextSticker(p);
+  const toNext = starsToNextPack(p);
+  const packs = packsAvailable(p);
   const msg = cur
     ? state.totalStars(p) === 0 && !Object.keys(p.done || {}).length
       ? `Bonjour ${p.name} ! Prêt pour le décollage ? Appuie sur la première planète !`
@@ -70,7 +75,17 @@ export function hubScreen(app) {
         'div',
         { class: 'bubble' },
         msg,
-        toNext ? h('div', { class: 'bubble-sub' }, `Encore ${toNext} ⭐ pour un nouvel autocollant !`) : null,
+        packs
+          ? h(
+              'button',
+              { class: 'bubble-sub link', onclick: () => go('album', {}, { replace: true }) },
+              packs > 1
+                ? `🎁 Tu as ${packs} pochettes surprises à ouvrir dans l’album !`
+                : '🎁 Tu as une pochette surprise à ouvrir dans l’album !',
+            )
+          : toNext
+            ? h('div', { class: 'bubble-sub' }, `Encore ${toNext} ⭐ pour une pochette surprise !`)
+            : null,
       ),
     ),
   );
