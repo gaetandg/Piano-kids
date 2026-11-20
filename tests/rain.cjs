@@ -14,6 +14,8 @@ const CASES = [
   ['fusee', 'hymne', 'exact', 60, { width: 880, height: 412 }],
   ['lapin', 'frere-jacques', 'spam', 0, { width: 412, height: 880 }],
   ['fusee', 'clair-2mains', 'exact', 60, { width: 880, height: 412 }],
+  ['comete', 'hymne', 'exact', 50, { width: 412, height: 880 }],
+  ['comete', 'vive-le-vent', 'exact', 50, { width: 880, height: 412 }],
 ];
 (async () => {
   const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });

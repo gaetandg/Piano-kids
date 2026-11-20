@@ -41,7 +41,9 @@ export function rainScreen(app) {
         ? '🐢 Les notes t’attendent sur la ligne jaune : prends ton temps !'
         : speed === 'lapin'
           ? '🐇 Les notes tombent doucement : joue-les quand elles touchent la ligne.'
-          : '🚀 Ça va vite ! Pour les champions du rythme.';
+          : speed === 'fusee'
+            ? '🚀 Ça va vite ! Pour les champions du rythme.'
+            : '☄️ Encore plus vite que la fusée : le défi des experts !';
   }
 
   function card(id, song, unlocked, lockText) {

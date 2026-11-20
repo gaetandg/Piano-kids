@@ -82,7 +82,7 @@ export class Keyboard {
       }
       const m = keyAt(e.clientX, e.clientY);
       this.pointers.set(e.pointerId, m);
-      if (m != null) this.trigger(m);
+      if (m != null) this.trigger(m, { x: e.clientX, y: e.clientY });
     });
     this.el.addEventListener('pointermove', (e) => {
       if (!this.pointers.has(e.pointerId)) return;
@@ -91,7 +91,7 @@ export class Keyboard {
         const old = this.pointers.get(e.pointerId);
         if (old != null) this.release(old);
         this.pointers.set(e.pointerId, m);
-        if (m != null) this.trigger(m);
+        if (m != null) this.trigger(m, { x: e.clientX, y: e.clientY });
       }
     });
     const up = (e) => {
@@ -104,11 +104,30 @@ export class Keyboard {
     this.el.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
-  trigger(m) {
+  // `pt` : où le doigt a touché (pour accepter une note attendue toute proche).
+  trigger(m, pt = null) {
     const k = this.keys.get(m);
     if (k) k.classList.add('down');
     this.showPlayed(m);
-    if (this.onNote && this.enabled !== false) this.onNote(m);
+    if (this.onNote && this.enabled !== false) this.onNote(m, pt);
+  }
+
+  // Largeur d'une touche blanche, en pixels.
+  whiteWidth() {
+    return (this.el.clientWidth * parseFloat(this.el.style.getPropertyValue('--wk') || '10')) / 100;
+  }
+
+  // Touches à moins de `tol` pixels du doigt (la plus proche d'abord). Une touche blanche
+  // s'élargit sur les côtés ; une noire aussi vers le bas.
+  nearKeys(x, y, tol) {
+    const out = [];
+    for (const [m, k] of this.keys) {
+      const r = k.getBoundingClientRect();
+      const black = k.classList.contains('black');
+      if (x < r.left - tol || x > r.right + tol || y < r.top || y > r.bottom + (black ? tol : 0)) continue;
+      out.push({ m, d: Math.abs(x - (r.left + r.right) / 2) });
+    }
+    return out.sort((a, b) => a.d - b.d).map((o) => o.m);
   }
 
   release(m) {

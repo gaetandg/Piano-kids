@@ -106,8 +106,15 @@ export function createShell(app, opts) {
   };
   shell.setProgress(0);
 
-  function onTap(m) {
+  function onTap(m, pt) {
     if (!shell.inputEnabled) return;
+    // Doigt un peu à côté : si la note attendue est juste au bord (environ un tiers de touche), on la compte.
+    // Un doigt posé franchement sur une autre touche reste une erreur.
+    if (pt && shell.expect && !shell.expect(m) && shell.keyboard) {
+      const tol = Math.min(18, Math.max(6, shell.keyboard.whiteWidth() * 0.35));
+      const near = shell.keyboard.nearKeys(pt.x, pt.y, tol).find((x) => x !== m && shell.expect(x));
+      if (near != null) m = near;
+    }
     if (shell.playTaps) playNote(m);
     if (shell.handler) shell.handler(m, 'touch');
   }

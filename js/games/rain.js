@@ -9,6 +9,7 @@ export const SPEEDS = {
   tortue: { label: 'Tortue', icon: '🐢', tempo: 0.6, lead: 3.4, wait: true, hint: true },
   lapin: { label: 'Lapin', icon: '🐇', tempo: 0.6, lead: 3.0, wait: false, hint: true },
   fusee: { label: 'Fusée', icon: '🚀', tempo: 0.9, lead: 2.4, wait: false, hint: false },
+  comete: { label: 'Comète', icon: '☄️', tempo: 1.2, lead: 1.9, wait: false, hint: false },
 };
 
 // La chanson à jouer : une chanson de la bibliothèque, ou une composition de l'enfant (« comp:0 »).
@@ -239,7 +240,14 @@ export default function rain(shell, mission, finish) {
     score += Math.round(base * (1 + Math.min(2, Math.floor(combo / 10) * 0.5)));
   }
 
-  shell.expect = (m) => notes.some((n) => n.state === 'wait' && matches(m, n));
+  // la note attendue : celle qui arrive sur la ligne en ce moment (sert aussi à rattraper un doigt un peu à côté)
+  shell.expect = (m) =>
+    notes.some(
+      (n) =>
+        n.state === 'wait' &&
+        matches(m, n) &&
+        (sp.wait ? n === notes.find((x) => x.state === 'wait') : Math.abs(n.t - clock) <= GOOD + MIC_DELAY),
+    );
   shell.handler = (m, source) => {
     if (!running || !alive) return;
     if (sp.wait) {
