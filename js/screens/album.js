@@ -1,4 +1,4 @@
-// Album : les autocollants et les pochettes surprises, puis « Ma planète » à décorer.
+// Album : les autocollants et les pochettes surprises, « Ma planète » à décorer, le Mémory.
 import { h, mascot, confetti, modal, wait } from '../ui.js';
 import * as state from '../state.js';
 import { go } from '../router.js';
@@ -6,11 +6,13 @@ import { STICKERS, packsAvailable, openPack, starsToNextPack } from '../rewards.
 import { sfxWhoosh, sfxStar, sfxBigSuccess } from '../audio.js';
 import { topBar, bottomNav } from './hub.js';
 import { decoPanel } from './deco.js';
+import { memoryMenu } from './memory.js';
 
 // Onglets de l'album
 const TABS = [
   ['stickers', '🌟', 'Autocollants'],
   ['deco', '🪐', 'Ma planète'],
+  ['memory', '🃏', 'Mémory'],
 ];
 
 // Un autocollant (grand), avec ses badges « Nouveau » / « Brillant ».
@@ -184,6 +186,10 @@ export function albumScreen(app, params = {}) {
     body.innerHTML = '';
     if (tab === 'deco') {
       body.append(decoPanel(p));
+      return;
+    }
+    if (tab === 'memory') {
+      body.append(memoryMenu(p));
       return;
     }
     renderTalk();
