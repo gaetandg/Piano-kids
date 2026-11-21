@@ -862,6 +862,27 @@ h3 {
     radial-gradient(circle at 25% 70%, #fff 12%, transparent 13%), radial-gradient(circle at 50% 45%, #fff 12%, transparent 13%),
     radial-gradient(circle at 75% 20%, #fff 12%, transparent 13%);
 }
+.planet-octave {
+  background: linear-gradient(180deg, #7fe7ff 0%, #2a7de1 48%, #5a3820 52%, #c98a5a 100%);
+  box-shadow:
+    inset -10px -12px 22px rgba(0, 0, 0, 0.35),
+    0 0 26px rgba(56, 198, 244, 0.5);
+}
+.planet-octave::before {
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  content: '🐙';
+  font-size: 40px;
+  border-radius: 50%;
+}
+.hl-btn.twin {
+  background: linear-gradient(#38c6f4, #2a7de1);
+}
+.hl-btn.diff {
+  background: linear-gradient(#ff9f1c, #c2410c);
+}
 .planet-compositeurs {
   background: radial-gradient(circle at 32% 30%, #fff1c1, #c9a227 50%, #5c4310);
   box-shadow:

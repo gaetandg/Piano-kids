@@ -47,7 +47,7 @@ export default function rain(shell, mission, finish) {
   const twoHands = song.hands && song.hands !== 'right';
   const flat = song.notes.some((n) => n.flat);
   // à l'écran on vise la bonne touche ; au micro, la bonne note (et la bonne octave à deux mains)
-  const exact = () => shell.mode === 'screen' || (twoHands && shell.octaveStrict());
+  const exact = () => shell.mode === 'screen' || ((twoHands || !!mission.exact) && shell.octaveStrict());
   const matches = (m, n) => (exact() ? m === n.midi : pc(m) === pc(n.midi));
 
   let t = 0;

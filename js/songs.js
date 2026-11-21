@@ -358,6 +358,33 @@ const RAW = [
     lyrics:
       'Au clair de la lu- ne, mon a- mi Pier- rot, prê- te- moi ta plu- me pour é- crire un mot. Ma chan- delle est mor- te, je n’ai plus de feu. Ou- vre- moi ta por- te pour l’a- mour de Dieu.',
   },
+  // Planète Octave : la même mélodie en grave, au milieu et en aigu
+  {
+    id: 'frere-echo',
+    title: 'Frère Jacques en écho',
+    emoji: '⛰️',
+    planet: 'p19',
+    level: 3,
+    bpm: 100,
+    notes:
+      'C4 D4 E4 C4 C5 D5 E5 C5 E4 F4 G4:2 E5 F5 G5:2 G4:.5 A4:.5 G4:.5 F4:.5 E4 C4 G5:.5 A5:.5 G5:.5 F5:.5 E5 C5 ' +
+      'C4 G3 C4:2 C5 G4 C5:2',
+    lyrics:
+      'Frè- re Jac- ques, frè- re Jac- ques, dor- mez- vous, dor- mez- vous ? Son- nez les ma- ti- nes, son- nez les ma- ti- nes, ding, dang, dong, ding, dang, dong !',
+  },
+  {
+    id: 'clair-octaves',
+    title: 'Au clair de la lune : la souris, la maman et l’ours',
+    emoji: '🐭',
+    planet: 'p19',
+    level: 3,
+    bpm: 96,
+    notes:
+      'C5 C5 C5 D5 E5:2 D5:2 C5 E5 D5 D5 C5:4 C4 C4 C4 D4 E4:2 D4:2 C4 E4 D4 D4 C4:4 ' +
+      'D4 D4 D4 D4 A3:2 A3:2 D4 C4 B3 A3 G3:4 <C3 <C3 <C3 <D3 <E3:2 <D3:2 <C3 <E3 <D3 <D3 <C3:4',
+    lyrics:
+      'Au clair de la lu- ne, mon a- mi Pier- rot, prê- te- moi ta plu- me pour é- crire un mot. Ma chan- delle est mor- te, je n’ai plus de feu. Ou- vre- moi ta por- te pour l’a- mour de Dieu.',
+  },
 ];
 
 // Ponctuation isolée (« ? », « ! ») : on la colle à la syllabe précédente.

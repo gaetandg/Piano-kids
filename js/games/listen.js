@@ -1,5 +1,5 @@
 // « Écoute et choisis » : joyeux ou triste (majeur / mineur), crescendo ou decrescendo, vite ou lent,
-// et « qui a composé cette musique ? ».
+// « qui a composé cette musique ? » et « jumelles ou pas ? » (la même note à une octave d'écart).
 import { h, wait } from '../ui.js';
 import { playNote, sfxSuccess, sfxError } from '../audio.js';
 import { pick } from '../music.js';
@@ -46,7 +46,24 @@ const KINDS = {
     },
     no: { mozart: 'Non, c’était Mozart.', beethoven: 'Non, c’était Beethoven.', brahms: 'Non, c’était Brahms.' },
   },
+  twins: {
+    ask: 'Écoute les deux notes : ce sont des jumelles (la même note, en grave et en aigu) ou deux notes différentes ?',
+    a: { key: 'twin', emoji: '👯', label: 'Jumelles' },
+    b: { key: 'diff', emoji: '🙅', label: 'Différentes' },
+    yes: { twin: 'Oui ! La même note, une octave plus loin. 👯', diff: 'Oui ! Deux notes différentes.' },
+    no: {
+      twin: 'Non, c’étaient des jumelles : la même note, une octave plus loin.',
+      diff: 'Non, c’étaient deux notes différentes. Regarde leurs noms !',
+    },
+  },
 };
+
+// Deux notes « jumelles » (une octave d'écart) ou différentes, dans un ordre au hasard.
+function twinPair(answer) {
+  const a = pick([55, 57, 60, 62, 64, 65, 67]);
+  const b = a + (answer === 'twin' ? 12 : pick([4, 5, 7, 9]));
+  return Math.random() < 0.5 ? [a, b] : [b, a];
+}
 
 // les morceaux de chaque compositeur (on joue leur début)
 const PIECES = {
@@ -66,7 +83,16 @@ const MOTIFS = [
 const toMinor = (iv) => (iv % 12 === 4 ? iv - 1 : iv % 12 === 9 ? iv - 1 : iv);
 
 // Joue un exemple. kind : 'mood' | 'volume' | 'tempo' ; answer : la bonne réponse. Renvoie {notes, secs}.
-export function playExample(kind, answer, { root = pick([60, 62, 65, 67]), motif = pick(MOTIFS), piece = null } = {}) {
+export function playExample(
+  kind,
+  answer,
+  { root = pick([60, 62, 65, 67]), motif = pick(MOTIFS), piece = null, pair = null } = {},
+) {
+  if (kind === 'twins') {
+    const notes = pair || twinPair(answer);
+    notes.forEach((m, i) => playNote(m, { when: i * 0.9, dur: 0.85 }));
+    return { notes, secs: 1.8 };
+  }
   if (kind === 'composer') {
     // le début du morceau, avec ses vraies durées
     const song = getSong(piece || pick(PIECES[answer]));
@@ -165,6 +191,7 @@ export default function listen(shell, mission, finish) {
       root: pick([60, 62, 65, 67]),
       motif: pick(MOTIFS),
       piece: p.kind === 'composer' ? pick(PIECES[p.answer]) : null,
+      pair: p.kind === 'twins' ? twinPair(p.answer) : null,
     };
     row._answer = p.answer; // pour les tests automatiques
     buttons(p.kind);
@@ -180,7 +207,8 @@ export default function listen(shell, mission, finish) {
     locked = true;
     const K = KINDS[cur.kind];
     const ok = key === cur.answer;
-    if (cur.kind === 'mood') shell.keyboard.setTargets(cur.notes, { label: true, flat: cur.answer === 'sad' });
+    if (cur.kind === 'mood' || cur.kind === 'twins')
+      shell.keyboard.setTargets(cur.notes, { label: true, flat: cur.answer === 'sad' });
     if (ok) {
       sfxSuccess();
       shell.say(K.yes[cur.answer], 'excited', false);
