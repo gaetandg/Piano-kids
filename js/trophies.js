@@ -121,11 +121,11 @@ export const TROPHIES = [
     value: (p) => (p.compositions || []).length,
   },
   {
-    id: 'memory',
+    id: 'memory-levels', // nouveau nom : les paliers ont changé avec les niveaux du Mémory
     icon: '🐘',
     name: 'Mémoire d’éléphant',
     goal: (n) => `Gagne ${n} étoiles au Mémory`,
-    tiers: [2, 4, 6],
+    tiers: [4, 12, 20],
     value: (p) => Object.values(p.memoStars || {}).reduce((a, b) => a + b, 0),
   },
   {

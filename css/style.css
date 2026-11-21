@@ -3520,22 +3520,24 @@ button.sticker {
 .memo-menu {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
-.memo-level {
+.memo-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 24px;
+  border: 2px solid var(--line);
+  background: rgba(255, 255, 255, 0.05);
+}
+.memo-mode-head {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px;
-  border-radius: 22px;
-  border: 2px solid var(--line);
-  background: rgba(255, 255, 255, 0.07);
-  color: #fff;
-  font: inherit;
-  text-align: left;
+  gap: 12px;
 }
-.memo-level-ic {
-  font-size: 40px;
+.memo-mode-ic {
+  font-size: 38px;
 }
 .memo-level-body {
   flex: 1;
@@ -3549,6 +3551,51 @@ button.sticker {
 .memo-level-body small {
   color: var(--muted);
   font-size: 14px;
+}
+.memo-levels {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.memo-level {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 4px;
+  border-radius: 18px;
+  border: 2px solid var(--line);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+  min-width: 0;
+}
+.memo-level b {
+  font-size: 15px;
+}
+.memo-level small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.memo-level .stars.small {
+  font-size: 15px;
+}
+.memo-level-ic {
+  font-size: 32px;
+  line-height: 1.1;
+}
+.memo-level.locked {
+  opacity: 0.5;
+}
+.memo-level small.memo-lock {
+  font-size: 10.5px;
+  line-height: 1.15;
+  text-align: center;
+}
+.memo-unlock {
+  font-weight: 700;
+  color: var(--gold, #ffd60a);
+  margin: 4px 0;
 }
 .memo-page {
   display: flex;
@@ -3567,16 +3614,23 @@ button.sticker {
   font-weight: 700;
   font-size: 19px;
 }
+.memo-title small {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 15px;
+  white-space: nowrap;
+}
+/* --cols / --rows (debout) et --lcols / --lrows (couché) sont posés par le jeu selon le nombre de cartes */
 .memo-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(var(--cols, 3), 1fr);
   gap: 10px;
   width: 100%;
-  max-width: 480px;
+  max-width: min(
+    480px,
+    calc((100dvh - 90px - (var(--rows, 4) - 1) * 10px) * 3 / (4 * var(--rows, 4)) * var(--cols, 3) + (var(--cols, 3) - 1) * 10px)
+  );
   margin: auto;
-}
-.memo-grid.ears {
-  grid-template-columns: repeat(4, 1fr);
 }
 .memo-card {
   position: relative;
@@ -3586,6 +3640,7 @@ button.sticker {
   background: none;
   perspective: 600px;
   font: inherit;
+  container-type: inline-size;
 }
 .memo-back,
 .memo-face {
@@ -3603,6 +3658,7 @@ button.sticker {
     radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.35), transparent 40%), linear-gradient(135deg, #5d5cff, #a55eea);
   border: 3px solid rgba(255, 255, 255, 0.6);
   font-size: 34px;
+  font-size: 32cqw;
   box-shadow: 0 5px 0 rgba(0, 0, 0, 0.3);
 }
 .memo-face {
@@ -3629,29 +3685,40 @@ button.sticker {
   flex-direction: column;
   align-items: center;
   gap: 6px;
+  gap: 4cqw;
 }
 .memo-e {
   font-size: clamp(34px, 11vw, 56px);
+  font-size: min(56px, 44cqw);
   line-height: 1;
 }
 .memo-note {
   font-size: 13px;
+  font-size: clamp(10px, 13cqw, 14px);
   font-weight: 700;
   border-radius: 10px;
   padding: 1px 8px;
+  padding: 1px clamp(4px, 7cqw, 8px);
 }
 .memo-sound {
   font-size: 40px;
+  font-size: min(40px, 36cqw);
   animation: pulse 0.9s ease-in-out infinite;
 }
 @media (orientation: landscape) and (max-height: 520px) {
-  .memo-grid {
-    grid-template-columns: repeat(6, 1fr);
-    max-width: min(100%, calc((100dvh - 80px) / 2 * 6 + 50px));
+  .memo-menu {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
-  .memo-grid.ears {
-    grid-template-columns: repeat(4, 1fr);
-    max-width: min(100%, calc((100dvh - 80px) / 2 * 4 + 30px));
+  .memo-menu > .lead {
+    grid-column: 1 / -1;
+  }
+  .memo-grid {
+    grid-template-columns: repeat(var(--lcols, 6), 1fr);
+    max-width: min(
+      100%,
+      calc((100dvh - 80px - (var(--lrows, 2) - 1) * 10px) / var(--lrows, 2) * var(--lcols, 6) + (var(--lcols, 6) - 1) * 10px)
+    );
   }
   .memo-card {
     aspect-ratio: 1;
