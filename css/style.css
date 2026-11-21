@@ -883,6 +883,40 @@ h3 {
 .hl-btn.diff {
   background: linear-gradient(#ff9f1c, #c2410c);
 }
+.planet-voyage {
+  background:
+    radial-gradient(circle at 30% 35%, #4cd964 0 12%, transparent 13%),
+    radial-gradient(circle at 62% 62%, #4cd964 0 15%, transparent 16%),
+    radial-gradient(circle at 70% 25%, #4cd964 0 8%, transparent 9%),
+    radial-gradient(circle at 32% 30%, #9be7ff, #1e90ff 55%, #0b3d91);
+  box-shadow:
+    inset -10px -12px 22px rgba(0, 0, 0, 0.35),
+    0 0 26px rgba(30, 144, 255, 0.5);
+}
+.planet-voyage::after {
+  left: -22%;
+  right: -22%;
+  top: 38%;
+  height: 24%;
+  border-radius: 50%;
+  border: 3px dashed rgba(255, 255, 255, 0.85);
+  transform: rotate(-16deg);
+}
+.planet-voyage::before {
+  top: -6%;
+  right: -10%;
+  content: '✈️';
+  font-size: 26px;
+}
+.hl-btn.uk {
+  background: linear-gradient(#5c6bc0, #c62828);
+}
+.hl-btn.canada {
+  background: linear-gradient(#ef5350, #b71c1c);
+}
+.hl-btn.japan {
+  background: linear-gradient(#ff8fb1, #d81b60);
+}
 .planet-compositeurs {
   background: radial-gradient(circle at 32% 30%, #fff1c1, #c9a227 50%, #5c4310);
   box-shadow:

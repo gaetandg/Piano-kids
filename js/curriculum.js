@@ -1409,6 +1409,90 @@ export const PLANETS = [
     ],
   },
   {
+    id: 'p20',
+    name: 'Planète Voyage',
+    desc: 'Les chansons des enfants du monde entier',
+    look: 'voyage',
+    missions: [
+      {
+        id: 'p20-intro',
+        type: 'intro',
+        title: 'En route pour Londres',
+        slides: [
+          {
+            text: 'Bienvenue sur la planète Voyage ! ✈️ Cosmo t’emmène faire le tour de la Terre. Dans chaque pays, les enfants ont leurs chansons à eux.',
+            mood: 'excited',
+          },
+          {
+            text: 'Première étape : l’Angleterre ! 🇬🇧 À Londres, il y a un pont très célèbre. Les enfants anglais chantent « London Bridge is falling down ».',
+            kb: { range: [C4, 72], targets: [62, 64, 65, 67, 69], label: true },
+            sound: [67, 69, 67, 65, 64, 65, 67],
+          },
+          {
+            text: 'Elle commence comme une petite vague : Sol, La, Sol. À toi !',
+            kb: { range: [C4, 72], targets: [67, 69], label: true },
+            try: { seq: [7, 9, 7], prompt: 'Sol La Sol' },
+          },
+        ],
+      },
+      { id: 'p20-song1', type: 'song', title: 'Chanson : Le pont de Londres 🇬🇧', song: 'london-bridge' },
+      {
+        id: 'p20-intro2',
+        type: 'intro',
+        title: 'Le Canada et les États-Unis',
+        slides: [
+          {
+            text: 'On traverse l’océan jusqu’au Canada ! 🇨🇦 Au Québec, on parle français, et tous les enfants connaissent « Alouette ».',
+            kb: { range: [55, 72], targets: [55, 60, 62, 64], label: true },
+            sound: [60, 62, 64, 64, 62, 60, 62, 64, 60, 55],
+          },
+          {
+            text: 'À toi : Do, Ré, Mi, Mi… a-lou-et-te !',
+            kb: { range: [55, 72], targets: [60, 62, 64], label: true },
+            try: { seq: [0, 2, 4, 4], prompt: 'Do Ré Mi Mi' },
+          },
+          {
+            text: 'Juste à côté, aux États-Unis 🇺🇸, les enfants rament sur la rivière en chantant « Row, row, row your boat ». Écoute : « merrily, merrily » descend comme un toboggan !',
+            kb: { range: [C4, 72], targets: [60, 64, 67, 72], label: true },
+            sound: [72, 72, 72, 67, 67, 67, 64, 64, 64, 60, 60, 60],
+          },
+        ],
+      },
+      { id: 'p20-song2', type: 'song', title: 'Chanson : Alouette 🇨🇦', song: 'alouette' },
+      { id: 'p20-song3', type: 'song', title: 'Chanson : Row, row, row your boat 🇺🇸', song: 'row-boat' },
+      {
+        id: 'p20-intro3',
+        type: 'intro',
+        title: 'Le Japon',
+        slides: [
+          {
+            text: 'Dernière étape, tout au bout du monde : le Japon ! 🇯🇵 Au printemps, les cerisiers se couvrent de fleurs roses. 🌸',
+            mood: 'excited',
+          },
+          {
+            text: 'Les enfants japonais chantent « Sakura », la chanson des cerisiers. Elle utilise des notes qui sonnent un peu mystérieuses : La, Si, Do, Mi et Fa.',
+            kb: { range: [55, 72], targets: [59, 64, 65, 69, 71, 72], label: true },
+            sound: [69, 69, 71, 69, 69, 71],
+          },
+          {
+            text: 'À toi : La, La, Si… La, La, Si ! Sa-ku-ra, sa-ku-ra.',
+            kb: { range: [55, 72], targets: [69, 71], label: true },
+            try: { seq: [9, 9, 11, 9, 9, 11], prompt: 'La La Si, La La Si' },
+          },
+        ],
+      },
+      { id: 'p20-song4', type: 'song', title: 'Chanson : Sakura 🇯🇵', song: 'sakura' },
+      { id: 'p20-quiz', type: 'listen', title: 'De quel pays vient cette chanson ?', kinds: ['country'], rounds: 6 },
+      {
+        id: 'p20-rain',
+        type: 'rain',
+        title: '🌠 Pluie de notes : le pont de Londres',
+        song: 'london-bridge',
+        speed: 'lapin',
+      },
+    ],
+  },
+  {
     id: 'mystery',
     name: 'Planète Mystère',
     desc: 'Une surprise t’attend…',

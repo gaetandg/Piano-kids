@@ -385,6 +385,53 @@ const RAW = [
     lyrics:
       'Au clair de la lu- ne, mon a- mi Pier- rot, prê- te- moi ta plu- me pour é- crire un mot. Ma chan- delle est mor- te, je n’ai plus de feu. Ou- vre- moi ta por- te pour l’a- mour de Dieu.',
   },
+  // Planète Voyage : des chansons du monde entier
+  {
+    id: 'london-bridge',
+    title: 'Le pont de Londres (Angleterre)',
+    emoji: '🇬🇧',
+    planet: 'p20',
+    level: 3,
+    bpm: 104,
+    notes: 'G4:1.5 A4:.5 G4 F4 E4 F4 G4:2 D4 E4 F4:2 E4 F4 G4:2 G4:1.5 A4:.5 G4 F4 E4 F4 G4:2 D4:2 G4:2 E4 C4:3',
+    lyrics:
+      'Lon- don Bridge is fal- ling down, fal- ling down, fal- ling down. Lon- don Bridge is fal- ling down, my fair la- dy.',
+  },
+  {
+    id: 'alouette',
+    title: 'Alouette (Canada)',
+    emoji: '🇨🇦',
+    planet: 'p20',
+    level: 3,
+    bpm: 104,
+    notes: 'C4:.5 D4:.5 E4 E4 D4:.5 C4:.5 D4:.5 E4:.5 C4 G3 C4:.5 D4:.5 E4 E4 D4:.5 C4:.5 D4:.5 E4:.5 C4:2',
+    lyrics: 'A- lou- et- te, gen- til- l’a- lou- et- te, a- lou- et- te, je te plu- me- rai.',
+  },
+  {
+    id: 'row-boat',
+    title: 'Row, row, row your boat (États-Unis)',
+    emoji: '🇺🇸',
+    planet: 'p20',
+    level: 3,
+    bpm: 96,
+    notes:
+      'C4:1.5 C4:1.5 C4 D4:.5 E4:1.5 E4 D4:.5 E4 F4:.5 G4:3 ' +
+      'C5:.5 C5:.5 C5:.5 G4:.5 G4:.5 G4:.5 E4:.5 E4:.5 E4:.5 C4:.5 C4:.5 C4:.5 G4 F4:.5 E4 D4:.5 C4:3',
+    lyrics:
+      'Row, row, row your boat, gent- ly down the stream. Mer- ri- ly, mer- ri- ly, mer- ri- ly, mer- ri- ly, life is but a dream.',
+  },
+  {
+    id: 'sakura',
+    title: 'Sakura, les cerisiers en fleurs (Japon)',
+    emoji: '🇯🇵',
+    planet: 'p20',
+    level: 3,
+    bpm: 76,
+    notes:
+      'A4 A4 B4:2 A4 A4 B4:2 A4 B4 C5 B4 A4 B4:.5 A4:.5 F4:2 E4 C4 E4 F4 E4 E4:.5 C4:.5 B3:2 ' +
+      'A4 B4 C5 B4 A4 B4:.5 A4:.5 F4:2 E4 C4 E4 F4 E4 E4:.5 C4:.5 B3:2 A4 A4 B4:2 A4 A4 B4:2 E4 F4 B4:.5 A4:.5 F4 E4:4',
+    lyrics: null,
+  },
 ];
 
 // Ponctuation isolée (« ? », « ! ») : on la colle à la syllabe précédente.

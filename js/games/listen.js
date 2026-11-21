@@ -1,5 +1,5 @@
 // « Écoute et choisis » : joyeux ou triste (majeur / mineur), crescendo ou decrescendo, vite ou lent,
-// « qui a composé cette musique ? » et « jumelles ou pas ? » (la même note à une octave d'écart).
+// « qui a composé cette musique ? », « de quel pays vient cette chanson ? » et « jumelles ou pas ? » (la même note à une octave d'écart).
 import { h, wait } from '../ui.js';
 import { playNote, sfxSuccess, sfxError } from '../audio.js';
 import { pick } from '../music.js';
@@ -46,6 +46,22 @@ const KINDS = {
     },
     no: { mozart: 'Non, c’était Mozart.', beethoven: 'Non, c’était Beethoven.', brahms: 'Non, c’était Brahms.' },
   },
+  country: {
+    ask: 'Écoute ce début de chanson : de quel pays vient-elle ?',
+    a: { key: 'uk', emoji: '🇬🇧', label: 'Angleterre' },
+    b: { key: 'canada', emoji: '🇨🇦', label: 'Canada' },
+    c: { key: 'japan', emoji: '🇯🇵', label: 'Japon' },
+    yes: {
+      uk: 'Oui ! Le pont de Londres, en Angleterre. 🇬🇧',
+      canada: 'Oui ! Alouette, au Canada. 🇨🇦',
+      japan: 'Oui ! Sakura, au Japon. 🇯🇵',
+    },
+    no: {
+      uk: 'Non, c’était le pont de Londres, en Angleterre.',
+      canada: 'Non, c’était Alouette, au Canada.',
+      japan: 'Non, c’était Sakura, au Japon.',
+    },
+  },
   twins: {
     ask: 'Écoute les deux notes : ce sont des jumelles (la même note, en grave et en aigu) ou deux notes différentes ?',
     a: { key: 'twin', emoji: '👯', label: 'Jumelles' },
@@ -70,6 +86,9 @@ const PIECES = {
   mozart: ['mozart-nuit', 'maman'],
   beethoven: ['beethoven-elise', 'hymne'],
   brahms: ['brahms-berceuse'],
+  uk: ['london-bridge'],
+  canada: ['alouette'],
+  japan: ['sakura'],
 };
 const options = (K) => [K.a, K.b, K.c].filter(Boolean);
 
@@ -93,7 +112,7 @@ export function playExample(
     notes.forEach((m, i) => playNote(m, { when: i * 0.9, dur: 0.85 }));
     return { notes, secs: 1.8 };
   }
-  if (kind === 'composer') {
+  if (kind === 'composer' || kind === 'country') {
     // le début du morceau, avec ses vraies durées
     const song = getSong(piece || pick(PIECES[answer]));
     const beat = 60 / (song.bpm || 100);
@@ -190,7 +209,7 @@ export default function listen(shell, mission, finish) {
       ...p,
       root: pick([60, 62, 65, 67]),
       motif: pick(MOTIFS),
-      piece: p.kind === 'composer' ? pick(PIECES[p.answer]) : null,
+      piece: PIECES[p.answer] ? pick(PIECES[p.answer]) : null,
       pair: p.kind === 'twins' ? twinPair(p.answer) : null,
     };
     row._answer = p.answer; // pour les tests automatiques
