@@ -253,7 +253,7 @@ const WHITE = [0, 2, 4, 5, 7, 9, 11];
               const ns = await page.evaluate(() => document.querySelector('.chord-card')._notes);
               for (const x of ns) (await tapMidi(x), await page.waitForTimeout(120));
               await page.waitForTimeout(300);
-              if (/Bravo|Super|Parfait|Ça sonne/.test(await bubbleText()) || (await done())) break;
+              if (/Bravo|Super|Parfait|Ça sonne|Boum|orchestre/.test(await bubbleText()) || (await done())) break;
               await page.waitForTimeout(400);
             }
           });

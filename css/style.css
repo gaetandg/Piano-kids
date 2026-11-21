@@ -917,6 +917,21 @@ h3 {
 .hl-btn.japan {
   background: linear-gradient(#ff8fb1, #d81b60);
 }
+.planet-orchestre {
+  background: radial-gradient(circle at 32% 30%, #ffe0b2, #d9822b 50%, #6d3410);
+  box-shadow:
+    inset -10px -12px 22px rgba(0, 0, 0, 0.4),
+    0 0 26px rgba(217, 130, 43, 0.5);
+}
+.planet-orchestre::before {
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  content: '🎻';
+  font-size: 40px;
+  border-radius: 50%;
+}
 .planet-compositeurs {
   background: radial-gradient(circle at 32% 30%, #fff1c1, #c9a227 50%, #5c4310);
   box-shadow:
